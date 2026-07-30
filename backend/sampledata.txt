@@ -1,0 +1,74 @@
+# Sample Dataset Generation Plan
+
+This plan outlines the specific sample data that will be inserted into the Render PostgreSQL database to test and demonstrate the functionality of the Smart Rental Tracking System. We will write a Python script (`seed_db.py`) to generate and insert this data using SQLAlchemy.
+
+## User Review Required
+
+> [!IMPORTANT]
+> Please review the dataset below. If there are any specific test cases, machine types, or scenarios you want added before we execute the script, let me know!
+
+## Proposed Dataset
+
+### 1. Users & Authentication
+We will create users covering all roles with a default password of `password123`:
+1. `admin@cat.com` (CatAdmin) - Name: Super Admin
+2. `dealer1@cat.com` (Dealer) - Name: Alice Dealer
+3. `dealer2@cat.com` (Dealer) - Name: Bob Dealer
+4. `customer1@cat.com` (Customer) - Name: Charlie Construction
+5. `customer2@cat.com` (Customer) - Name: Diana Builders
+6. `fleet1@cat.com` (Fleet Manager) - Name: Edward Fleet
+7. `fleet2@cat.com` (Fleet Manager) - Name: Fiona Fleet
+
+### 2. Profiles (Dealers & Customers)
+- **Dealer 1**: "Caterpillar Global" (mapped to `dealer1@cat.com`)
+- **Dealer 2**: "Regional Cat Rentals" (mapped to `dealer2@cat.com`)
+- **Customer 1**: "Mega Construction Inc." (mapped to `customer1@cat.com`)
+- **Customer 2**: "BuildIt Right Corp." (mapped to `customer2@cat.com`)
+
+### 3. Sites & Fleet Managers
+- **Site 1**: "Downtown Skyscraper Project" (Owned by Customer 1)
+- **Site 2**: "Highway 61 Expansion" (Owned by Customer 1)
+- **Site 3**: "Suburban Housing Dev" (Owned by Customer 2)
+- **Fleet Manager 1**: Assigned to Site 1
+- **Fleet Manager 2**: Assigned to Site 2
+
+### 4. Machines
+1. `EX-001` (Excavator, 320 GC, Dealer 1) - Status: `RENTED`
+2. `EX-002` (Excavator, 336, Dealer 1) - Status: `AVAILABLE`
+3. `WL-001` (Wheel Loader, 950 GC, Dealer 2) - Status: `RENTED`
+4. `BD-001` (Bulldozer, D6, Dealer 1) - Status: `MAINTENANCE`
+
+### 5. Operators
+- `OP-001` (John Doe, Customer 1)
+- `OP-002` (Jane Smith, Customer 2)
+
+### 6. Rentals & Lifecycle Events
+We will create three distinct rental scenarios to populate the timeline/history tables:
+
+**Scenario A (Active Rental): `EX-001`**
+- **Rental**: Customer 1 rented `EX-001` for Site 1. Status: `ACTIVE`.
+- **Check-Out**: Fleet Manager 1 performed check-out.
+- **Site Transfer**: Transferred from Site 1 to Site 2 mid-rental.
+- **Usage Data**: 3 days of equipment usage logged (Engine hours: 8, Idle: 2 per day) by `OP-001`.
+
+**Scenario B (Completed Rental): `EX-002`**
+- **Rental**: Customer 2 rented `EX-002` for Site 3. Status: `COMPLETED`.
+- **Check-Out**: Performed at start date.
+- **Check-In**: Performed at end date (Actual return date populated).
+- **Maintenance**: Routine oil change performed after the rental completed.
+
+**Scenario C (Active without Transfers): `WL-001`**
+- **Rental**: Customer 1 rented `WL-001` for Site 2. Status: `ACTIVE`.
+- **Check-Out**: Fleet Manager 2 performed check-out.
+
+### 7. ML Predictions & Notifications
+- **Demand Prediction**: High demand predicted for "Excavator" at Site 1 next month.
+- **Utilization Prediction**: `BD-001` predicted to have high idle hours.
+- **Notifications**: 
+  - "New Rental Created" sent to Customer 1.
+  - "Machine Transferred" sent to Fleet Manager 2.
+
+## Verification Plan
+1. We will write `seed_db.py` to insert this exact data programmatically.
+2. We will run the script locally to populate your Render database.
+3. You can verify the data by hitting the FastAPI endpoints via the Swagger UI (e.g., fetching `/api/v1/machines/EX-001/timeline` to see the complete history of Scenario A).
