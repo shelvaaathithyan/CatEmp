@@ -16,7 +16,7 @@ from app.models.checkin_checkout import CheckinCheckout
 from app.models.site_transfer import SiteTransfer
 from app.models.equipment_usage import EquipmentUsage
 from app.models.maintenance import MaintenanceHistory
-from app.models.predictions import DemandPrediction, UtilizationPrediction
+from app.models.predictions import DemandPrediction, UtilizationPrediction, MaintenancePrediction
 from app.models.notification import Notification
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -37,6 +37,10 @@ def seed_database():
             User(email="customer2@cat.com", password_hash=password, role="Customer", name="Diana Builders"),
             User(email="fleet1@cat.com", password_hash=password, role="Fleet Manager", name="Edward Fleet"),
             User(email="fleet2@cat.com", password_hash=password, role="Fleet Manager", name="Fiona Fleet"),
+            User(email="customera@cat.com", password_hash=password, role="Customer", name="Customer A"),
+            User(email="customerb@cat.com", password_hash=password, role="Customer", name="Customer B"),
+            User(email="fleeta@cat.com", password_hash=password, role="Fleet Manager", name="Fleet A"),
+            User(email="fleetb@cat.com", password_hash=password, role="Fleet Manager", name="Fleet B"),
         ]
         db.add_all(users_data)
         db.commit()
@@ -50,7 +54,9 @@ def seed_database():
         ]
         customers = [
             Customer(user_id=users_data[3].id, company_name="Mega Construction Inc."),
-            Customer(user_id=users_data[4].id, company_name="BuildIt Right Corp.")
+            Customer(user_id=users_data[4].id, company_name="BuildIt Right Corp."),
+            Customer(user_id=users_data[7].id, company_name="Customer A Company"),
+            Customer(user_id=users_data[8].id, company_name="Customer B Company")
         ]
         db.add_all(dealers + customers)
         db.commit()
@@ -61,7 +67,9 @@ def seed_database():
         sites = [
             Site(customer_id=customers[0].id, site_code="S-001", site_name="Downtown Skyscraper Project"),
             Site(customer_id=customers[0].id, site_code="S-002", site_name="Highway 61 Expansion"),
-            Site(customer_id=customers[1].id, site_code="S-003", site_name="Suburban Housing Dev")
+            Site(customer_id=customers[1].id, site_code="S-003", site_name="Suburban Housing Dev"),
+            Site(customer_id=customers[2].id, site_code="S-004", site_name="Site A"),
+            Site(customer_id=customers[3].id, site_code="S-005", site_name="Site B")
         ]
         db.add_all(sites)
         db.commit()
@@ -69,7 +77,9 @@ def seed_database():
 
         fleet_mgrs = [
             FleetManager(user_id=users_data[5].id, site_id=sites[0].id),
-            FleetManager(user_id=users_data[6].id, site_id=sites[1].id)
+            FleetManager(user_id=users_data[6].id, site_id=sites[1].id),
+            FleetManager(user_id=users_data[9].id, site_id=sites[3].id),
+            FleetManager(user_id=users_data[10].id, site_id=sites[4].id)
         ]
         db.add_all(fleet_mgrs)
         db.commit()
@@ -81,7 +91,9 @@ def seed_database():
             Machine(equipment_id="EX-001", dealer_id=dealers[0].id, equipment_type="Excavator", model="320 GC", status="RENTED"),
             Machine(equipment_id="EX-002", dealer_id=dealers[0].id, equipment_type="Excavator", model="336", status="AVAILABLE"),
             Machine(equipment_id="WL-001", dealer_id=dealers[1].id, equipment_type="Wheel Loader", model="950 GC", status="RENTED"),
-            Machine(equipment_id="BD-001", dealer_id=dealers[0].id, equipment_type="Bulldozer", model="D6", status="MAINTENANCE")
+            Machine(equipment_id="BD-001", dealer_id=dealers[0].id, equipment_type="Bulldozer", model="D6", status="MAINTENANCE"),
+            Machine(equipment_id="NEW-001", dealer_id=dealers[0].id, equipment_type="Excavator", model="320 GC", status="RENTED"),
+            Machine(equipment_id="NEW-002", dealer_id=dealers[1].id, equipment_type="Excavator", model="320 GC", status="RENTED")
         ]
         db.add_all(machines)
         db.commit()
@@ -140,12 +152,59 @@ def seed_database():
         db.refresh(rental_c)
         db.add(CheckinCheckout(rental_id=rental_c.id, performed_by=fleet_mgrs[1].id, action="CHECKOUT", timestamp=now - timedelta(days=1)))
 
+        # Scenario D: customerA / fleetA / dealer1
+        rental_d = Rental(
+            equipment_id="NEW-001", customer_id=customers[2].id, site_id=sites[3].id, fleet_manager_id=fleet_mgrs[2].id,
+            check_in_date=today - timedelta(days=5), expected_return_date=today + timedelta(days=10), rental_status="ACTIVE"
+        )
+        db.add(rental_d)
+        
+        # Scenario E: customerB / fleetB / dealer2
+        rental_e = Rental(
+            equipment_id="NEW-002", customer_id=customers[3].id, site_id=sites[4].id, fleet_manager_id=fleet_mgrs[3].id,
+            check_in_date=today - timedelta(days=5), expected_return_date=today + timedelta(days=10), rental_status="ACTIVE"
+        )
+        db.add(rental_e)
+
         db.commit()
         logger.info("Rentals and historical events seeded.")
 
         # --- 7. PREDICTIONS & NOTIFICATIONS ---
-        db.add(DemandPrediction(prediction_timestamp=now, equipment_type="Excavator", site_id=sites[0].id, prediction_period="Next Month", expected_demand=5))
-        db.add(UtilizationPrediction(prediction_timestamp=now, equipment_id="BD-001", utilization_score=0.2, predicted_idle_hours=12.5, status="UNDERUTILIZED"))
+
+        # Demand Predictions
+        demand_preds = [
+            DemandPrediction(prediction_timestamp=now, equipment_type="Excavator", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=5),
+            DemandPrediction(prediction_timestamp=now, equipment_type="Wheel Loader", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=3),
+            DemandPrediction(prediction_timestamp=now, equipment_type="Bulldozer", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=2),
+            DemandPrediction(prediction_timestamp=now, equipment_type="Excavator", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=7),
+            DemandPrediction(prediction_timestamp=now, equipment_type="Excavator", site_id=sites[2].id, prediction_period="Next 30 Days", expected_demand=4),
+            DemandPrediction(prediction_timestamp=now, equipment_type="Wheel Loader", site_id=sites[2].id, prediction_period="Next 30 Days", expected_demand=6),
+            DemandPrediction(prediction_timestamp=now - timedelta(days=30), equipment_type="Excavator", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=4),
+            DemandPrediction(prediction_timestamp=now - timedelta(days=30), equipment_type="Wheel Loader", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=2),
+        ]
+        db.add_all(demand_preds)
+
+        # Utilization Predictions
+        util_preds = [
+            UtilizationPrediction(prediction_timestamp=now, equipment_id="EX-001", utilization_score=0.81, predicted_idle_hours=45.6, status="Running"),
+            UtilizationPrediction(prediction_timestamp=now, equipment_id="EX-002", utilization_score=0.13, predicted_idle_hours=195.0, status="Idle"),
+            UtilizationPrediction(prediction_timestamp=now, equipment_id="WL-001", utilization_score=0.82, predicted_idle_hours=45.0, status="Running"),
+            UtilizationPrediction(prediction_timestamp=now, equipment_id="BD-001", utilization_score=0.20, predicted_idle_hours=160.0, status="Idle"),
+            UtilizationPrediction(prediction_timestamp=now, equipment_id="NEW-001", utilization_score=0.75, predicted_idle_hours=60.0, status="Running"),
+            UtilizationPrediction(prediction_timestamp=now, equipment_id="NEW-002", utilization_score=0.65, predicted_idle_hours=84.0, status="Running"),
+        ]
+        db.add_all(util_preds)
+
+        # Maintenance Predictions
+        maint_preds = [
+            MaintenancePrediction(equipment_id="EX-001", prediction_timestamp=now, maintenance_probability=0.15, predicted_service_date=today + timedelta(days=45), confidence=0.88),
+            MaintenancePrediction(equipment_id="EX-002", prediction_timestamp=now, maintenance_probability=0.85, predicted_service_date=today + timedelta(days=5), confidence=0.92),
+            MaintenancePrediction(equipment_id="WL-001", prediction_timestamp=now, maintenance_probability=0.35, predicted_service_date=today + timedelta(days=30), confidence=0.78),
+            MaintenancePrediction(equipment_id="BD-001", prediction_timestamp=now, maintenance_probability=0.72, predicted_service_date=today + timedelta(days=8), confidence=0.90),
+            MaintenancePrediction(equipment_id="NEW-001", prediction_timestamp=now, maintenance_probability=0.10, predicted_service_date=today + timedelta(days=60), confidence=0.95),
+            MaintenancePrediction(equipment_id="NEW-002", prediction_timestamp=now, maintenance_probability=0.45, predicted_service_date=today + timedelta(days=20), confidence=0.82),
+        ]
+        db.add_all(maint_preds)
         
         db.add(Notification(user_id=users_data[3].id, equipment_id="EX-001", notification_type="RENTAL_CREATED", title="New Rental Active", message="Excavator EX-001 has been dispatched."))
         db.add(Notification(user_id=users_data[6].id, equipment_id="EX-001", notification_type="MACHINE_TRANSFERRED", title="Machine Transferred to your site", message="EX-001 arrived at Highway 61 Expansion."))

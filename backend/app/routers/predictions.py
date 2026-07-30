@@ -1,6 +1,9 @@
+from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.core.deps import get_db, RoleChecker
+from app.core.deps import get_db, get_current_user, RoleChecker
+from app.models.user import User
+from app.models.predictions import DemandPrediction, UtilizationPrediction, MaintenancePrediction
 from app.schemas.predictions import (
     DemandPredictionCreate, DemandPredictionResponse,
     UtilizationPredictionCreate, UtilizationPredictionResponse,
@@ -24,3 +27,18 @@ def create_utilization_prediction(prediction_in: UtilizationPredictionCreate, db
 def create_maintenance_prediction(prediction_in: MaintenancePredictionCreate, db: Session = Depends(get_db)):
     """Stores a new predictive maintenance prediction."""
     return prediction_service.create_maintenance_prediction(db, prediction_in)
+
+@router.get("/demand", response_model=List[DemandPredictionResponse])
+def get_demand_predictions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Fetches all demand predictions."""
+    return db.query(DemandPrediction).order_by(DemandPrediction.prediction_timestamp.desc()).all()
+
+@router.get("/utilization", response_model=List[UtilizationPredictionResponse])
+def get_utilization_predictions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Fetches all utilization predictions."""
+    return db.query(UtilizationPrediction).order_by(UtilizationPrediction.prediction_timestamp.desc()).all()
+
+@router.get("/maintenance", response_model=List[MaintenancePredictionResponse])
+def get_maintenance_predictions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Fetches all maintenance predictions."""
+    return db.query(MaintenancePrediction).order_by(MaintenancePrediction.prediction_timestamp.desc()).all()
