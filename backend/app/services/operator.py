@@ -7,12 +7,15 @@ from app.models.customer import Customer
 
 operator_repo = OperatorRepository(Operator)
 
-def get_operators_for_customer(db: Session, user_id: int):
-    # Get the customer profile
-    customer = db.query(Customer).filter(Customer.user_id == user_id).first()
+def get_operators_for_user(db: Session, user):
+    if user.role == "Fleet Manager":
+        # Fleet Managers can view all operators across their site (simplified to all for now)
+        return operator_repo.get_multi(db)
+    
+    # Customer logic
+    customer = db.query(Customer).filter(Customer.user_id == user.id).first()
     if not customer:
         raise HTTPException(status_code=404, detail="Customer profile not found")
-    
     return operator_repo.get_by_customer(db, customer.id)
 
 def create_operator(db: Session, user_id: int, operator_in: OperatorCreate):

@@ -22,12 +22,12 @@ const CustomerUsage = () => {
   }, []);
 
   const columns = [
-    { header: 'Date', accessor: 'usage_date' },
+    { header: 'Date', accessor: 'usage_date', cell: (row) => row.usage_date ? new Date(row.usage_date).toLocaleDateString() : 'N/A' },
     { header: 'Equipment ID', accessor: 'equipment_id' },
     { header: 'Site ID', accessor: 'site_id' },
-    { header: 'Engine Hours', accessor: 'engine_hours_per_day' },
-    { header: 'Idle Hours', accessor: 'idle_hours_per_day' },
-    { header: 'Operator', accessor: 'last_operator_id' }
+    { header: 'Engine Hours', accessor: 'engine_hours_per_day', cell: (row) => `${parseFloat(row.engine_hours_per_day).toFixed(1)}h` },
+    { header: 'Idle Hours', accessor: 'idle_hours_per_day', cell: (row) => `${parseFloat(row.idle_hours_per_day).toFixed(1)}h` },
+    { header: 'Operator', accessor: 'last_operator_id', cell: (row) => row.last_operator_id || 'N/A' }
   ];
 
   return (

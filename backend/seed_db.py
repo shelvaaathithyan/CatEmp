@@ -102,7 +102,9 @@ def seed_database():
         # --- 5. OPERATORS ---
         operators = [
             Operator(operator_id="OP-001", customer_id=customers[0].id, operator_name="John Doe"),
-            Operator(operator_id="OP-002", customer_id=customers[1].id, operator_name="Jane Smith")
+            Operator(operator_id="OP-002", customer_id=customers[1].id, operator_name="Jane Smith"),
+            Operator(operator_id="OP-003", customer_id=customers[2].id, operator_name="Mike Johnson"),
+            Operator(operator_id="OP-004", customer_id=customers[3].id, operator_name="Sarah Williams")
         ]
         db.add_all(operators)
         db.commit()
@@ -166,6 +168,12 @@ def seed_database():
         )
         db.add(rental_e)
 
+        db.commit()
+        for r in [rental_d, rental_e]: db.refresh(r)
+        
+        # --- 6b. USAGE DATA FOR NEW RENTALS ---
+        db.add(EquipmentUsage(rental_id=rental_d.id, equipment_id="NEW-001", site_id=sites[3].id, usage_date=today - timedelta(days=1), engine_hours_per_day=8.2, idle_hours_per_day=1.5, rental_days=4, last_operator_id="OP-003"))
+        db.add(EquipmentUsage(rental_id=rental_e.id, equipment_id="NEW-002", site_id=sites[4].id, usage_date=today - timedelta(days=1), engine_hours_per_day=7.5, idle_hours_per_day=2.0, rental_days=4, last_operator_id="OP-004"))
         db.commit()
         logger.info("Rentals and historical events seeded.")
 

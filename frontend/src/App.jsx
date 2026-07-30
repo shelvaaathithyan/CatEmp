@@ -15,9 +15,10 @@ import DealerDashboard from './pages/dealer/DealerDashboard';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import FleetDashboard from './pages/fleet/FleetDashboard';
 import FleetSites from './pages/fleet/FleetSites';
-import FleetUsage from './pages/fleet/FleetUsage';
-import FleetTransfers from './pages/fleet/FleetTransfers';
 import FleetCheckin from './pages/fleet/FleetCheckin';
+import FleetTransfers from './pages/fleet/FleetTransfers';
+import FleetUsage from './pages/fleet/FleetUsage';
+import FleetOperators from './pages/fleet/FleetOperators';
 import FleetPredictions from './pages/fleet/FleetPredictions';
 import FleetNotifications from './pages/fleet/FleetNotifications';
 
@@ -95,9 +96,10 @@ function App() {
             <Route path="/fleet" element={<ProtectedRoute allowedRoles={['Fleet Manager']}><FleetManagerLayout /></ProtectedRoute>}>
               <Route path="dashboard" element={<FleetDashboard />} />
               <Route path="site" element={<FleetSites />} />
-              <Route path="usage" element={<FleetUsage />} />
-              <Route path="transfers" element={<FleetTransfers />} />
               <Route path="checkin" element={<FleetCheckin />} />
+              <Route path="transfers" element={<FleetTransfers />} />
+              <Route path="operators" element={<FleetOperators />} />
+              <Route path="usage" element={<FleetUsage />} />
               <Route path="predictions" element={<FleetPredictions />} />
               <Route path="notifications" element={<FleetNotifications />} />
             </Route>

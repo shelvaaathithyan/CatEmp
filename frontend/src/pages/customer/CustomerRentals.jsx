@@ -26,8 +26,16 @@ const CustomerRentals = () => {
     { header: 'Rental ID', accessor: 'id' },
     { header: 'Equipment ID', accessor: 'equipment_id' },
     { header: 'Site ID', accessor: 'site_id' },
-    { header: 'Start Date', accessor: 'check_in_date' },
-    { header: 'Expected Return', accessor: 'expected_return_date' },
+    { 
+      header: 'Start Date', 
+      accessor: 'check_in_date',
+      cell: (row) => row.check_in_date ? new Date(row.check_in_date).toLocaleDateString() : 'N/A'
+    },
+    { 
+      header: 'Expected Return', 
+      accessor: 'expected_return_date',
+      cell: (row) => row.expected_return_date ? new Date(row.expected_return_date).toLocaleDateString() : 'N/A'
+    },
     { 
       header: 'Status', 
       accessor: 'rental_status',

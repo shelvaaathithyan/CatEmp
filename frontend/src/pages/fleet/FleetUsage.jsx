@@ -21,12 +21,12 @@ const FleetUsage = () => {
   }, []);
 
   const columns = [
-    { header: 'Usage ID', accessor: 'id' },
+    { header: 'Equipment ID', accessor: 'equipment_id' },
     { header: 'Rental ID', accessor: 'rental_id' },
     { header: 'Date', accessor: 'usage_date' },
-    { header: 'Hours Used', accessor: 'hours_used' },
-    { header: 'Fuel Consumed (L)', accessor: 'fuel_consumed' },
-    { header: 'Operator ID', accessor: 'operator_id' }
+    { header: 'Engine Hours', accessor: 'engine_hours_per_day', cell: (row) => `${parseFloat(row.engine_hours_per_day).toFixed(1)}h` },
+    { header: 'Idle Hours', accessor: 'idle_hours_per_day', cell: (row) => `${parseFloat(row.idle_hours_per_day).toFixed(1)}h` },
+    { header: 'Operator ID', accessor: 'last_operator_id', cell: (row) => row.last_operator_id || 'N/A' }
   ];
 
   return (

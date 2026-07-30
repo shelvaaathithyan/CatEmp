@@ -92,9 +92,9 @@ const FleetTransfers = () => {
     { 
       header: 'Date', 
       accessor: 'transfer_date',
-      render: (val) => new Date(val).toLocaleString() 
+      cell: (row) => new Date(row.transfer_date).toLocaleString() 
     },
-    { header: 'Remarks', accessor: 'remarks' }
+    { header: 'Remarks', accessor: 'remarks', cell: (row) => row.remarks || '-' }
   ];
 
   return (
