@@ -24,7 +24,7 @@ const FleetDashboard = () => {
   if (!data) return <div style={{ color: 'var(--error)' }}>Error loading dashboard.</div>;
 
   const renderWidgetMachines = (widgetData) => {
-    if (!widgetData || !widgetData.machines || widgetData.machines.length === 0) return <p style={{color: 'var(--text-secondary)', fontSize: '0.9rem'}}>No machines</p>;
+    if (!widgetData || !widgetData.machines || widgetData.machines.length === 0) return <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No machines</p>;
     return (
       <ul style={{ listStyleType: 'none', padding: 0, marginTop: '10px' }}>
         {widgetData.machines.slice(0, 3).map(m => (
@@ -40,10 +40,10 @@ const FleetDashboard = () => {
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontFamily: 'Manrope, sans-serif', color: 'var(--text)' }}>Fleet Logistics</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Site: {data.assigned_site_name}</p>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>Fleet Logistics</h1>
+        <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Site: {data.assigned_site_name}</p>
       </div>
-      
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
         <Card title="Active Machines on Site">
           <h2 style={{ fontSize: '2rem', margin: '5px 0', color: 'var(--success)' }}>{data.active_machines.count}</h2>
@@ -54,7 +54,7 @@ const FleetDashboard = () => {
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--text)' }}>{data.today_checkins}</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Physical arrivals today</p>
         </Card>
-        
+
         <Card title="Today's Check-outs">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--text)' }}>{data.today_checkouts}</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Physical departures today</p>

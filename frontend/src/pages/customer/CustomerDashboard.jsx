@@ -24,7 +24,7 @@ const CustomerDashboard = () => {
   if (!data) return <div style={{ color: 'var(--error)' }}>Error loading dashboard.</div>;
 
   const renderWidgetMachines = (widgetData) => {
-    if (!widgetData || !widgetData.machines || widgetData.machines.length === 0) return <p style={{color: 'var(--text-secondary)', fontSize: '0.9rem'}}>No machines</p>;
+    if (!widgetData || !widgetData.machines || widgetData.machines.length === 0) return <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No machines</p>;
     return (
       <ul style={{ listStyleType: 'none', padding: 0, marginTop: '10px' }}>
         {widgetData.machines.slice(0, 3).map(m => (
@@ -40,10 +40,10 @@ const CustomerDashboard = () => {
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontFamily: 'Manrope, sans-serif', color: 'var(--text)' }}>Customer Dashboard</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Overview of your rented machines and sites.</p>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>Customer Dashboard</h1>
+        <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Overview of your rented machines and sites.</p>
       </div>
-      
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
         <Card title="Monthly Rental Cost">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--primary)' }}>${data.total_rental_cost_this_month.toLocaleString()}</h2>
@@ -52,7 +52,7 @@ const CustomerDashboard = () => {
         <Card title="Active Contracts">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--text)' }}>{data.active_rentals}</h2>
         </Card>
-        
+
         <Card title="Machines on Rent">
           <h2 style={{ fontSize: '2rem', margin: '5px 0', color: 'var(--success)' }}>{data.total_machines_rented.count}</h2>
           {renderWidgetMachines(data.total_machines_rented)}
@@ -66,7 +66,7 @@ const CustomerDashboard = () => {
         <Card title="Active Sites">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--text)' }}>{data.active_sites}</h2>
         </Card>
-        
+
         <Card title="Registered Operators">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--text)' }}>{data.total_operators}</h2>
         </Card>

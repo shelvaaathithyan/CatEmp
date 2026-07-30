@@ -101,19 +101,19 @@ const FleetTransfers = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontFamily: 'Manrope, sans-serif', color: 'var(--text)' }}>Machine Transfers</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>History of machines moved between sites.</p>
+          <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>Machine Transfers</h1>
+          <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>History of machines moved between sites.</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
           style={{
             background: 'var(--primary)',
-            color: 'white',
+            color: 'var(--black)',
             border: 'none',
             padding: '0.75rem 1.5rem',
             borderRadius: '8px',
             fontSize: '1rem',
-            fontWeight: '600',
+            fontWeight: '700',
             cursor: 'pointer',
             transition: 'opacity 0.2s'
           }}
@@ -221,8 +221,8 @@ const FleetTransfers = () => {
                 </button>
                 <button type="submit"
                   style={{ 
-                    padding: '0.85rem 1.5rem', background: 'var(--primary)', color: 'white', 
-                    border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600',
+                    padding: '0.85rem 1.5rem', background: 'var(--primary)', color: 'var(--black)', 
+                    border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700',
                     boxShadow: '0 4px 6px -1px rgba(250, 204, 21, 0.2)' 
                   }}>
                   Submit Transfer

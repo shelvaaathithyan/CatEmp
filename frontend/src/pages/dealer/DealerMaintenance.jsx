@@ -35,8 +35,8 @@ const DealerMaintenance = () => {
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontFamily: 'Manrope, sans-serif', color: 'var(--text)' }}>Maintenance Logs</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Machines currently flagged for maintenance.</p>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>Maintenance Logs</h1>
+        <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Machines currently flagged for maintenance.</p>
       </div>
 
       <Card>

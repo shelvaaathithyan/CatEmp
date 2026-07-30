@@ -60,7 +60,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<RootRedirect />} />
-            
+
             <Route path="/login" element={
               <PublicOnlyRoute>
                 <Login />

@@ -8,8 +8,13 @@ if db_url.startswith("postgresql://"):
 elif db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
 
-# Create database engine using psycopg3 dialect
-engine = create_engine(db_url, pool_pre_ping=True)
+# SQLite needs specific connect args for FastAPI
+connect_args = {}
+if db_url.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+# Create database engine
+engine = create_engine(db_url, pool_pre_ping=True, connect_args=connect_args)
 
 # Create session maker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

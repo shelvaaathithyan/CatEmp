@@ -18,12 +18,14 @@
   height: 80px;
   display: flex;
   align-items: center;
-  padding: 0 1.5rem;
+  justify-content: center; /* Center the logo */
+  padding: 0 0.5rem; /* Reduced padding to allow larger logo */
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logo {
-  height: 40px;
+  width: 240px; /* Maximize the logo width */
+  height: auto;
   object-fit: contain;
 }
 
@@ -51,9 +53,10 @@
 }
 
 .navLinkActive {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: white;
+  background-color: rgba(255, 205, 17, 0.1); /* Subtle yellow tint */
+  color: var(--primary);
   border-left-color: var(--primary);
+  font-weight: 600;
 }
 
 .mainWrapper {

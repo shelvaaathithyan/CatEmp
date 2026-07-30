@@ -24,7 +24,7 @@ const DealerDashboard = () => {
   if (!data) return <div style={{ color: 'var(--error)' }}>Error loading dashboard.</div>;
 
   const renderWidgetMachines = (widgetData) => {
-    if (!widgetData || !widgetData.machines || widgetData.machines.length === 0) return <p style={{color: 'var(--text-secondary)', fontSize: '0.9rem'}}>No machines in this category</p>;
+    if (!widgetData || !widgetData.machines || widgetData.machines.length === 0) return <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No machines in this category</p>;
     return (
       <ul style={{ listStyleType: 'none', padding: 0, marginTop: '10px' }}>
         {widgetData.machines.slice(0, 3).map(m => (
@@ -40,16 +40,16 @@ const DealerDashboard = () => {
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontFamily: 'Manrope, sans-serif', color: 'var(--text)' }}>Dealer Dashboard</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Overview of fleet operations and revenue.</p>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>Dealer Dashboard</h1>
+        <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Overview of fleet operations and revenue.</p>
       </div>
-      
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
         <Card title="Revenue This Month">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--primary)' }}>${data.revenue_this_month.toLocaleString()}</h2>
           <p style={{ color: 'var(--text-secondary)' }}>From {data.active_customers} active customers</p>
         </Card>
-        
+
         <Card title="Total Fleet Size">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--text)' }}>{data.total_machines}</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Owned machines</p>

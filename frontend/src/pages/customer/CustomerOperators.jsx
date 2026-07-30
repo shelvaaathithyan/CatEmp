@@ -33,8 +33,8 @@ const CustomerOperators = () => {
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontFamily: 'Manrope, sans-serif', color: 'var(--text)' }}>My Operators</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Manage drivers and operators for your rented machines.</p>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>My Operators</h1>
+        <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Manage drivers and operators for your rented machines.</p>
       </div>
 
       <Card>
