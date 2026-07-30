@@ -113,6 +113,10 @@ export const rentalAPI = {
     const response = await apiClient.get('/rentals/check-action');
     return response.data;
   },
+  createTransfer: async (transferData) => {
+    const response = await apiClient.post('/rentals/transfer', transferData);
+    return response.data;
+  },
   create: async (data) => {
     const response = await apiClient.post('/rentals/', data);
     return response.data;
