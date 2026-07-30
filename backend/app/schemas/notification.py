@@ -20,3 +20,10 @@ class NotificationResponse(NotificationBase):
 
     class Config:
         from_attributes = True
+
+class NotificationSendRequest(BaseModel):
+    recipient_id: int
+    title: str
+    message: str
+    priority: Optional[str] = "INFO"
+    notification_type: Optional[str] = "MANUAL"

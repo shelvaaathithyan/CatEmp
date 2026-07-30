@@ -52,7 +52,7 @@ const DashboardLayout = ({ title, links }) => {
           <div className={styles.navActions}>
             <button 
               className={styles.notificationBtn} 
-              onClick={() => navigate('notifications')}
+              onClick={() => navigate(`/${user?.role === 'Fleet Manager' ? 'fleet' : user?.role.toLowerCase()}/notifications`)}
               title="Notifications"
             >
               <Bell size={20} />
