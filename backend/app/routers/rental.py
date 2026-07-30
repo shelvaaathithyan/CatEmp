@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.core.deps import get_db, RoleChecker
 from app.schemas.rental import RentalCreate, RentalResponse
@@ -34,9 +34,50 @@ def create_rental(rental_in: RentalCreate, db: Session = Depends(get_db), curren
     return rental_service.create_rental(db, rental_in)
 
 @router.post("/transfer", response_model=SiteTransferResponse)
-def transfer_site(transfer_in: SiteTransferCreate, db: Session = Depends(get_db), current_user=Depends(allow_transfers)):
+def transfer_site(
+    transfer_in: SiteTransferCreate, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db), 
+    current_user=Depends(allow_transfers)
+):
     """Transfers a machine to a new site during an active rental."""
-    return rental_service.transfer_site(db, transfer_in)
+    from app.models.fleet_manager import FleetManager
+    from app.models.customer import Customer
+    from app.models.rental import Rental
+    from fastapi import HTTPException
+    
+    fm = db.query(FleetManager).filter(FleetManager.user_id == current_user.id).first()
+    if not fm:
+        raise HTTPException(status_code=403, detail="User is not a Fleet Manager.")
+        
+    # Override transferred_by with the actual FleetManager ID (not the User ID)
+    transfer_in.transferred_by = fm.id
+    
+    # Process the transfer synchronously
+    transfer = rental_service.transfer_site(db, transfer_in)
+    
+    # Find the customer ID to notify
+    rental = db.query(Rental).filter(Rental.id == transfer.rental_id).first()
+    if rental:
+        customer = db.query(Customer).filter(Customer.id == rental.customer_id).first()
+        if customer:
+            payload = {
+                "user_id": customer.user_id,
+                "title": "Machine Transferred",
+                "message": f"Machine {rental.equipment_id} was moved to site {transfer_in.to_site_id}",
+                "equipment_id": rental.equipment_id,
+                "priority": "MEDIUM",
+                "notification_type": "SITE_TRANSFER"
+            }
+            
+            async def publish_notification():
+                from app.core.rabbitmq import rabbitmq
+                print(f"[API] Publishing background notification to user {customer.user_id}")
+                await rabbitmq.publish_message(payload)
+                
+            background_tasks.add_task(publish_notification)
+            
+    return transfer
 
 @router.post("/check-action", response_model=CheckinCheckoutResponse)
 def checkin_checkout(action_in: CheckinCheckoutCreate, db: Session = Depends(get_db), current_user=Depends(allow_transfers)):

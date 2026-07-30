@@ -16,7 +16,10 @@ async def process_notification(message: dict):
         priority = message.get("priority", "INFO")
         notification_type = message.get("notification_type", "SYSTEM")
 
+        print(f"[WORKER] Received notification for user {user_id}: {title}")
+
         if not user_id or not title:
+            print("[WORKER] Missing user_id or title, aborting.")
             return
 
         # 1. Save to DB

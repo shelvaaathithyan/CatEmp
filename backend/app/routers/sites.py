@@ -29,19 +29,19 @@ def get_sites(
         else:
             return [] # Edge case where user is Customer but has no profile
             
-    site_ids = None
     if current_user.role == "Fleet Manager":
         from app.models.fleet_manager import FleetManager
         fm = db.query(FleetManager).filter(FleetManager.user_id == current_user.id).first()
         if fm:
-            site_ids = [fm.site_id]
+            # Allow Fleet Manager to see all sites belonging to the same Customer as their site
+            fm_site = site_repo.get(db, fm.site_id)
+            if fm_site:
+                customer_id = fm_site.customer_id
         else:
             return []
             
     query = db.query(site_repo.model)
     if customer_id:
         query = query.filter(site_repo.model.customer_id == customer_id)
-    if site_ids:
-        query = query.filter(site_repo.model.id.in_(site_ids))
         
     return query.offset(skip).limit(limit).all()
