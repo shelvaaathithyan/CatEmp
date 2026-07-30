@@ -6,6 +6,7 @@ from app.schemas.rental import RentalCreate, RentalResponse
 from app.schemas.site_transfer import SiteTransferCreate, SiteTransferResponse
 from app.schemas.checkin_checkout import CheckinCheckoutCreate, CheckinCheckoutResponse
 from app.services.rental import rental_service
+from app.repositories.rental import rental_repo
 
 router = APIRouter()
 
@@ -41,3 +42,45 @@ def transfer_site(transfer_in: SiteTransferCreate, db: Session = Depends(get_db)
 def checkin_checkout(action_in: CheckinCheckoutCreate, db: Session = Depends(get_db), current_user=Depends(allow_transfers)):
     """Performs a check-in or check-out operation on an active rental."""
     return rental_service.process_checkin_checkout(db, action_in)
+
+@router.get("/transfer", response_model=List[SiteTransferResponse])
+def get_transfers(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user=Depends(allow_view)
+):
+    """Get history of site transfers."""
+    from app.repositories.events import site_transfer_repo
+    from app.models.fleet_manager import FleetManager
+    
+    fleet_manager_id = None
+    if current_user.role == "Fleet Manager":
+        fm = db.query(FleetManager).filter(FleetManager.user_id == current_user.id).first()
+        if fm:
+            fleet_manager_id = fm.id
+        else:
+            return []
+            
+    return site_transfer_repo.get_all(db, skip=skip, limit=limit, fleet_manager_id=fleet_manager_id)
+
+@router.get("/check-action", response_model=List[CheckinCheckoutResponse])
+def get_check_actions(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user=Depends(allow_view)
+):
+    """Get history of check-in and check-out actions."""
+    from app.repositories.events import checkin_checkout_repo
+    from app.models.fleet_manager import FleetManager
+    
+    fleet_manager_id = None
+    if current_user.role == "Fleet Manager":
+        fm = db.query(FleetManager).filter(FleetManager.user_id == current_user.id).first()
+        if fm:
+            fleet_manager_id = fm.id
+        else:
+            return []
+            
+    return checkin_checkout_repo.get_all(db, skip=skip, limit=limit, fleet_manager_id=fleet_manager_id)

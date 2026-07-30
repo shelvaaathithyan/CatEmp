@@ -25,3 +25,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """Returns the bcrypt hash of the given password."""
     return pwd_context.hash(password)
+
+def verify_token(token: str, db) -> Any:
+    """Verifies a JWT and returns the User object, or None."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        from app.models.user import User
+        user = db.query(User).filter(User.id == int(user_id)).first()
+        return user
+    except Exception:
+        return None

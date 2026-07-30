@@ -23,7 +23,7 @@ def get_dealer_kpis(db: Session, dealer_user_id: int):
     if not dealer:
         return None
     
-    total_machines = db.query(func.count(Machine.id)).filter(Machine.dealer_id == dealer.id).scalar() or 0
+    total_machines = db.query(func.count(Machine.equipment_id)).filter(Machine.dealer_id == dealer.id).scalar() or 0
     
     available = db.query(Machine).filter(Machine.dealer_id == dealer.id, Machine.status == 'AVAILABLE').all()
     rented = db.query(Machine).filter(Machine.dealer_id == dealer.id, Machine.status == 'RENTED').all()
@@ -64,7 +64,7 @@ def get_customer_kpis(db: Session, customer_user_id: int):
         .filter(Rental.customer_id == customer.id, Rental.rental_status == 'ACTIVE').all()
         
     active_sites = db.query(func.count(func.distinct(Rental.site_id))).filter(Rental.customer_id == customer.id, Rental.rental_status == 'ACTIVE').scalar() or 0
-    total_operators = db.query(func.count(Operator.id)).filter(Operator.customer_id == customer.id).scalar() or 0
+    total_operators = db.query(func.count(Operator.operator_id)).filter(Operator.customer_id == customer.id).scalar() or 0
     
     today = datetime.now(timezone.utc).date()
     next_week = today + timedelta(days=7)

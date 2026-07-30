@@ -1,5 +1,20 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
+
+class FleetManagerUser(BaseModel):
+    name: str
+    email: str
+    phone: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+class FleetManagerSiteSchema(BaseModel):
+    id: int
+    user: FleetManagerUser
+
+    class Config:
+        from_attributes = True
 
 class SiteBase(BaseModel):
     site_code: str
@@ -12,6 +27,7 @@ class SiteCreate(SiteBase):
 class SiteResponse(SiteBase):
     id: int
     customer_id: int
+    fleet_managers: List[FleetManagerSiteSchema] = []
 
     class Config:
         from_attributes = True

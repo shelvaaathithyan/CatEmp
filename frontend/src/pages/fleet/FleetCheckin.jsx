@@ -1,0 +1,64 @@
+import React, { useState, useEffect } from 'react';
+import Table from '../../components/common/Table';
+import { rentalAPI } from '../../api';
+
+const FleetCheckin = () => {
+  const [actions, setActions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActions = async () => {
+      try {
+        const data = await rentalAPI.getCheckins();
+        setActions(data);
+      } catch (error) {
+        console.error("Error fetching check-ins:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActions();
+  }, []);
+
+  const columns = [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Rental ID', accessor: 'rental_id' },
+    { header: 'Action', accessor: 'action', 
+      render: (val) => (
+        <span style={{
+          padding: '0.2rem 0.5rem',
+          borderRadius: '4px',
+          fontSize: '0.8rem',
+          background: val === 'CHECK_IN' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+          color: val === 'CHECK_IN' ? '#10b981' : '#ef4444'
+        }}>
+          {val}
+        </span>
+      )
+    },
+    { 
+      header: 'Timestamp', 
+      accessor: 'timestamp',
+      render: (val) => new Date(val).toLocaleString() 
+    },
+    { header: 'Performed By (User ID)', accessor: 'performed_by' },
+    { header: 'Remarks', accessor: 'remarks' }
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontFamily: 'Manrope, sans-serif', color: 'var(--text)' }}>Physical Check-ins & Check-outs</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>RFID and QR scanning history for machine movement.</p>
+      </div>
+      
+      {loading ? (
+        <div style={{ color: 'var(--text)' }}>Loading history...</div>
+      ) : (
+        <Table columns={columns} data={actions} />
+      )}
+    </div>
+  );
+};
+
+export default FleetCheckin;

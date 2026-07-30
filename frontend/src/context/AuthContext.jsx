@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import { login as apiLogin, logout as apiLogout, getCurrentUser } from '../services/authService';
+import { authAPI } from '../api';
 
 const AuthContext = createContext(null);
 
@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       if (token) {
         try {
-          const userData = await getCurrentUser();
+          const userData = await authAPI.getCurrentUser();
           setUser(userData);
         } catch (error) {
           console.error("Failed to fetch user:", error);
@@ -27,19 +27,20 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    const data = await apiLogin(email, password);
+    const data = await authAPI.login(email, password);
     const accessToken = data.access_token;
     localStorage.setItem('token', accessToken);
     setToken(accessToken);
     
     // Once we have a token, fetch the user
-    const userData = await getCurrentUser();
+    const userData = await authAPI.getCurrentUser();
     setUser(userData);
     return userData;
   };
 
   const logout = () => {
-    apiLogout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };

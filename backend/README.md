@@ -54,7 +54,14 @@ Initialize the database tables using Alembic:
 alembic upgrade head
 ```
 
-### 5. Running the Application
+### 5. Start RabbitMQ (Optional but required for Notifications)
+The backend uses RabbitMQ to process real-time notifications asynchronously. You can spin up a local instance easily using Docker:
+```bash
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
+The web dashboard will be available at `http://localhost:15672` (login: `guest`/`guest`).
+
+### 6. Running the Application
 Start the FastAPI server via Uvicorn:
 ```bash
 uvicorn app.main:app --reload
