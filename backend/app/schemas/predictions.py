@@ -10,6 +10,8 @@ class MaintenancePredictionBase(BaseModel):
     maintenance_probability: Optional[Decimal] = None
     predicted_service_date: Optional[date] = None
     confidence: Optional[Decimal] = None
+    model: Optional[str] = None
+    equipment_type: Optional[str] = None
 
 class MaintenancePredictionCreate(MaintenancePredictionBase):
     pass
@@ -27,6 +29,8 @@ class UtilizationPredictionBase(BaseModel):
     utilization_score: Optional[Decimal] = None
     predicted_idle_hours: Optional[Decimal] = None
     status: Optional[str] = None
+    model: Optional[str] = None
+    equipment_type: Optional[str] = None
 
 class UtilizationPredictionCreate(UtilizationPredictionBase):
     pass
@@ -44,6 +48,7 @@ class DemandPredictionBase(BaseModel):
     site_id: int
     prediction_period: Optional[str] = None
     expected_demand: Optional[int] = None
+    model: Optional[str] = None
 
 class DemandPredictionCreate(DemandPredictionBase):
     pass
@@ -61,6 +66,8 @@ class AnomalyPredictionBase(BaseModel):
     anomaly_status: str
     anomaly_score: Optional[Decimal] = None
     severity: Optional[str] = None
+    model: Optional[str] = None
+    equipment_type: Optional[str] = None
 
 class AnomalyPredictionCreate(AnomalyPredictionBase):
     pass

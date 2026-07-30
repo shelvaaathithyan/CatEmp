@@ -185,14 +185,14 @@ def seed_database():
 
         # Demand Predictions
         demand_preds = [
-            DemandPrediction(prediction_timestamp=now, equipment_type="Excavator", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=5),
-            DemandPrediction(prediction_timestamp=now, equipment_type="Wheel Loader", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=3),
-            DemandPrediction(prediction_timestamp=now, equipment_type="Bulldozer", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=2),
-            DemandPrediction(prediction_timestamp=now, equipment_type="Excavator", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=7),
-            DemandPrediction(prediction_timestamp=now, equipment_type="Excavator", site_id=sites[2].id, prediction_period="Next 30 Days", expected_demand=4),
-            DemandPrediction(prediction_timestamp=now, equipment_type="Wheel Loader", site_id=sites[2].id, prediction_period="Next 30 Days", expected_demand=6),
-            DemandPrediction(prediction_timestamp=now - timedelta(days=30), equipment_type="Excavator", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=4),
-            DemandPrediction(prediction_timestamp=now - timedelta(days=30), equipment_type="Wheel Loader", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=2),
+            DemandPrediction(prediction_timestamp=now, equipment_type="CAT 320 GC (Excavator)", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=5),
+            DemandPrediction(prediction_timestamp=now, equipment_type="CAT 950 GC (Wheel Loader)", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=3),
+            DemandPrediction(prediction_timestamp=now, equipment_type="CAT D6 LMT (Bulldozer)", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=2),
+            DemandPrediction(prediction_timestamp=now, equipment_type="CAT 777 OHT (Off-Highway Truck)", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=7),
+            DemandPrediction(prediction_timestamp=now, equipment_type="CAT 320 GC (Excavator)", site_id=sites[2].id, prediction_period="Next 30 Days", expected_demand=4),
+            DemandPrediction(prediction_timestamp=now, equipment_type="CAT 950 GC (Wheel Loader)", site_id=sites[2].id, prediction_period="Next 30 Days", expected_demand=6),
+            DemandPrediction(prediction_timestamp=now - timedelta(days=30), equipment_type="CAT 320 GC (Excavator)", site_id=sites[0].id, prediction_period="Next 30 Days", expected_demand=4),
+            DemandPrediction(prediction_timestamp=now - timedelta(days=30), equipment_type="CAT 950 GC (Wheel Loader)", site_id=sites[1].id, prediction_period="Next 30 Days", expected_demand=2),
         ]
         db.add_all(demand_preds)
 

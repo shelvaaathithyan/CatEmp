@@ -9,6 +9,7 @@ const FleetTransfers = () => {
   const [transfers, setTransfers] = useState([]);
   const [activeRentals, setActiveRentals] = useState([]);
   const [availableSites, setAvailableSites] = useState([]);
+  const [siteLookup, setSiteLookup] = useState({});
   
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,18 +22,22 @@ const FleetTransfers = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch historical transfers
-      const data = await rentalAPI.getTransfers();
+      const [data, rentalsData, sitesData] = await Promise.all([
+        rentalAPI.getTransfers(),
+        rentalAPI.getAll({ rental_status: 'ACTIVE' }),
+        siteAPI.getAll()
+      ]);
+
       setTransfers(data);
-      
-      // Fetch active rentals to populate the dropdown
-      const rentalsData = await rentalAPI.getAll({ rental_status: 'ACTIVE' });
-      // A Fleet Manager only sees rentals for their site anyway
       setActiveRentals(rentalsData);
-      
-      // Fetch sites (now correctly returns all sites for the same customer)
-      const sitesData = await siteAPI.getAll();
       setAvailableSites(sitesData);
+
+      // Build a lookup map: site_id -> site_name
+      const lookup = {};
+      sitesData.forEach(s => {
+        lookup[s.id] = s.location || s.site_name || `Site ${s.id}`;
+      });
+      setSiteLookup(lookup);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -51,7 +56,6 @@ const FleetTransfers = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Find the selected rental to extract equipment_id and from_site_id
     const selectedRental = activeRentals.find(r => r.id === parseInt(formData.rental_id));
     if (!selectedRental) {
       toast.error("Please select a valid machine.");
@@ -77,7 +81,7 @@ const FleetTransfers = () => {
       toast.success("Machine successfully transferred!");
       setIsModalOpen(false);
       setFormData({ rental_id: '', to_site_id: '', remarks: '' });
-      fetchData(); // Refresh all tables
+      fetchData();
     } catch (error) {
       toast.error("Failed to transfer machine. " + (error.response?.data?.detail || error.message));
     }
@@ -85,17 +89,53 @@ const FleetTransfers = () => {
 
   const columns = [
     { header: 'Transfer ID', accessor: 'id' },
-    { header: 'Equipment ID', accessor: 'equipment_id' },
-    { header: 'Rental ID', accessor: 'rental_id' },
-    { header: 'From Site', accessor: 'from_site_id' },
-    { header: 'To Site', accessor: 'to_site_id' },
+    { header: 'Equipment', accessor: 'equipment_id',
+      cell: (row) => (
+        <span style={{ fontWeight: '700', color: 'var(--black)' }}>
+          {row.equipment_id}
+        </span>
+      )
+    },
+    { header: 'From Site', accessor: 'from_site_id',
+      cell: (row) => (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{
+            display: 'inline-block', width: '8px', height: '8px',
+            borderRadius: '50%', background: '#e74c3c'
+          }}/>
+          {siteLookup[row.from_site_id] || `Site ${row.from_site_id}`}
+        </span>
+      )
+    },
+    { header: 'To Site', accessor: 'to_site_id',
+      cell: (row) => (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{
+            display: 'inline-block', width: '8px', height: '8px',
+            borderRadius: '50%', background: '#27ae60'
+          }}/>
+          {siteLookup[row.to_site_id] || `Site ${row.to_site_id}`}
+        </span>
+      )
+    },
     { 
-      header: 'Date', 
+      header: 'Transfer Date', 
       accessor: 'transfer_date',
       cell: (row) => new Date(row.transfer_date).toLocaleString() 
     },
     { header: 'Remarks', accessor: 'remarks', cell: (row) => row.remarks || '-' }
   ];
+
+  const inputStyle = {
+    width: '100%', padding: '0.85rem', borderRadius: '8px',
+    border: '1px solid var(--border)', background: 'var(--background)',
+    color: 'var(--text)', fontSize: '1rem', cursor: 'pointer'
+  };
+
+  const labelStyle = {
+    display: 'block', color: 'var(--text-secondary)',
+    marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600'
+  };
 
   return (
     <div>
@@ -107,14 +147,10 @@ const FleetTransfers = () => {
         <button 
           onClick={() => setIsModalOpen(true)}
           style={{
-            background: 'var(--primary)',
-            color: 'var(--black)',
-            border: 'none',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            fontSize: '1rem',
-            fontWeight: '700',
-            cursor: 'pointer',
+            background: 'var(--primary)', color: 'var(--black)', border: 'none',
+            padding: '0.75rem 1.5rem', borderRadius: '8px', fontSize: '1rem',
+            fontWeight: '700', cursor: 'pointer',
+            boxShadow: '0 4px 6px -1px rgba(250, 204, 21, 0.2)',
             transition: 'opacity 0.2s'
           }}
           onMouseOver={e => e.target.style.opacity = '0.9'}
@@ -126,92 +162,74 @@ const FleetTransfers = () => {
       
       {loading ? (
         <div style={{ color: 'var(--text)' }}>Loading transfer history...</div>
-      ) : (
+      ) : transfers.length > 0 ? (
         <Table columns={columns} data={transfers} />
+      ) : (
+        <div style={{
+          padding: '3rem', textAlign: 'center', background: 'var(--surface, white)',
+          borderRadius: '12px', border: '1px solid var(--border)', color: 'var(--medium)'
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🚛</div>
+          <p>No transfers have been recorded yet.</p>
+        </div>
       )}
 
-      {/* Premium Transfer Modal */}
+      {/* Transfer Modal */}
       {isModalOpen && (
         <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }}>
           <div style={{
-            background: 'var(--surface)',
-            padding: '2.5rem',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '550px',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-            border: '1px solid var(--border)'
+            background: 'var(--surface, white)', padding: '2.5rem', borderRadius: '16px',
+            width: '100%', maxWidth: '550px',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid var(--border)'
           }}>
             <h2 style={{ color: 'var(--text)', marginTop: 0, fontSize: '1.5rem', marginBottom: '1.5rem' }}>Initiate Transfer</h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
               <div>
-                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Select Machine to Transfer</label>
+                <label style={labelStyle}>Select Machine to Transfer</label>
                 <select 
-                  name="rental_id" 
-                  value={formData.rental_id} 
-                  onChange={handleChange} 
-                  required
-                  style={{ 
-                    width: '100%', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border)', 
-                    background: 'var(--background)', color: 'var(--text)', fontSize: '1rem', cursor: 'pointer' 
-                  }}
+                  name="rental_id" value={formData.rental_id} 
+                  onChange={handleChange} required style={inputStyle}
                 >
                   <option value="" disabled>-- Choose a machine --</option>
                   {activeRentals.map(r => (
                     <option key={r.id} value={r.id}>
-                      {r.equipment_id} (Rental #{r.id}) - Currently at Site {r.site_id}
+                      {r.equipment_id} (Rental #{r.id}) — Currently at {siteLookup[r.site_id] || `Site ${r.site_id}`}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Destination Site</label>
+                <label style={labelStyle}>Destination Site</label>
                 <select 
-                  name="to_site_id" 
-                  value={formData.to_site_id} 
-                  onChange={handleChange} 
-                  required
-                  style={{ 
-                    width: '100%', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border)', 
-                    background: 'var(--background)', color: 'var(--text)', fontSize: '1rem', cursor: 'pointer' 
-                  }}
+                  name="to_site_id" value={formData.to_site_id} 
+                  onChange={handleChange} required style={inputStyle}
                 >
                   <option value="" disabled>-- Choose destination site --</option>
                   {availableSites.map(s => (
                     <option key={s.id} value={s.id}>
-                      {s.location} (ID: {s.id})
+                      {s.location || s.site_name || `Site ${s.id}`} (ID: {s.id})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Remarks (Optional)</label>
+                <label style={labelStyle}>Remarks (Optional)</label>
                 <input 
-                  type="text" 
-                  name="remarks" 
-                  value={formData.remarks} 
+                  type="text" name="remarks" value={formData.remarks} 
                   onChange={handleChange}
                   placeholder="e.g. Moved for emergency excavation"
-                  style={{ 
-                    width: '100%', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--border)', 
-                    background: 'var(--background)', color: 'var(--text)', fontSize: '1rem' 
-                  }} 
+                  style={{ ...inputStyle, cursor: 'text' }} 
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)}
                   style={{ 
                     padding: '0.85rem 1.5rem', background: 'transparent', color: 'var(--text)', 

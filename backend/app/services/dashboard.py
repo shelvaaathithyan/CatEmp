@@ -29,8 +29,8 @@ def get_dealer_kpis(db: Session, dealer_user_id: int):
     rented = db.query(Machine).filter(Machine.dealer_id == dealer.id, Machine.status == 'RENTED').all()
     maintenance = db.query(Machine).filter(Machine.dealer_id == dealer.id, Machine.status == 'MAINTENANCE').all()
     
-    underutilized = db.query(Machine).join(UtilizationPrediction, UtilizationPrediction.equipment_id == Machine.equipment_id)\
-        .filter(Machine.dealer_id == dealer.id, UtilizationPrediction.status == 'UNDERUTILIZED').all()
+    underutilized_subquery = db.query(UtilizationPrediction.equipment_id).filter(UtilizationPrediction.status == 'UNDERUTILIZED').distinct().subquery()
+    underutilized = db.query(Machine).filter(Machine.dealer_id == dealer.id, Machine.equipment_id.in_(underutilized_subquery)).all()
     
     today = datetime.now(timezone.utc).date()
     next_week = today + timedelta(days=7)

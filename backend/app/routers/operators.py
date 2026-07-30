@@ -22,7 +22,7 @@ def list_operators(
 def create_operator(
     operator_in: OperatorCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(RoleChecker(["CatAdmin", "Customer"]))
+    current_user: User = Depends(RoleChecker(["CatAdmin", "Customer", "Fleet Manager"]))
 ):
-    """Create a new operator."""
-    return operator_service.create_operator(db, current_user.id, operator_in)
+    """Create a new operator. Fleet Managers can register operators during check-in."""
+    return operator_service.create_operator(db, current_user, operator_in)

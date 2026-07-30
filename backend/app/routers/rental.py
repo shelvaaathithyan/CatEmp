@@ -25,8 +25,40 @@ def get_rentals(
     db: Session = Depends(get_db),
     current_user=Depends(allow_view)
 ):
-    """List all rentals with optional filters."""
-    return rental_repo.get_all(db, skip=skip, limit=limit, customer_id=customer_id, site_id=site_id, rental_status=rental_status)
+    """List rentals with strict role-based data isolation."""
+    from app.models.customer import Customer
+    from app.models.fleet_manager import FleetManager
+    from app.models.dealer import Dealer
+    from app.models.machine import Machine
+
+    query = db.query(rental_repo.model)
+
+    if current_user.role == "Customer":
+        customer = db.query(Customer).filter(Customer.user_id == current_user.id).first()
+        if not customer:
+            return []
+        query = query.filter(rental_repo.model.customer_id == customer.id)
+    elif current_user.role == "Fleet Manager":
+        fm = db.query(FleetManager).filter(FleetManager.user_id == current_user.id).first()
+        if not fm:
+            return []
+        query = query.filter(rental_repo.model.fleet_manager_id == fm.id)
+    elif current_user.role == "Dealer":
+        dealer = db.query(Dealer).filter(Dealer.user_id == current_user.id).first()
+        if not dealer:
+            return []
+        dealer_machines = db.query(Machine.equipment_id).filter(Machine.dealer_id == dealer.id).subquery()
+        query = query.filter(rental_repo.model.equipment_id.in_(dealer_machines))
+    elif current_user.role == "CatAdmin":
+        if customer_id:
+            query = query.filter(rental_repo.model.customer_id == customer_id)
+
+    if site_id:
+        query = query.filter(rental_repo.model.site_id == site_id)
+    if rental_status:
+        query = query.filter(rental_repo.model.rental_status == rental_status)
+
+    return query.offset(skip).limit(limit).all()
 
 @router.post("/", response_model=RentalResponse)
 def create_rental(rental_in: RentalCreate, db: Session = Depends(get_db), current_user=Depends(allow_rental_creation)):

@@ -7,17 +7,20 @@ const CustomerPredictions = () => {
   const [activeTab, setActiveTab] = useState('maintenance');
   const [maintenance, setMaintenance] = useState([]);
   const [utilization, setUtilization] = useState([]);
+  const [anomaly, setAnomaly] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [maintData, utilData] = await Promise.all([
+        const [maintData, utilData, anomalyData] = await Promise.all([
           predictionAPI.getMaintenance(),
-          predictionAPI.getUtilization()
+          predictionAPI.getUtilization(),
+          predictionAPI.getAnomaly()
         ]);
         setMaintenance(maintData);
         setUtilization(utilData);
+        setAnomaly(anomalyData);
       } catch (err) {
         console.error('Failed to fetch predictions:', err);
       } finally {
@@ -42,6 +45,7 @@ const CustomerPredictions = () => {
 
   const maintenanceColumns = [
     { header: 'Equipment ID', accessor: 'equipment_id' },
+    { header: 'Model', accessor: 'model', cell: (row) => <span style={{ fontWeight: '600', color: 'var(--black)' }}>{row.model ? `CAT ${row.model}` : row.equipment_type || 'N/A'}</span> },
     {
       header: 'Risk Level',
       accessor: 'maintenance_probability',
@@ -73,6 +77,7 @@ const CustomerPredictions = () => {
 
   const utilizationColumns = [
     { header: 'Equipment ID', accessor: 'equipment_id' },
+    { header: 'Model', accessor: 'model', cell: (row) => <span style={{ fontWeight: '600', color: 'var(--black)' }}>{row.model ? `CAT ${row.model}` : row.equipment_type || 'N/A'}</span> },
     {
       header: 'Utilization Score',
       accessor: 'utilization_score',
@@ -110,6 +115,65 @@ const CustomerPredictions = () => {
           </span>
         );
       }
+    }
+  ];
+
+  const anomalyColumns = [
+    { header: 'Equipment ID', accessor: 'equipment_id' },
+    { header: 'Model', accessor: 'model', cell: (row) => <span style={{ fontWeight: '600', color: 'var(--black)' }}>{row.model ? `CAT ${row.model}` : row.equipment_type || 'N/A'}</span> },
+    {
+      header: 'Anomaly Status',
+      accessor: 'anomaly_status',
+      cell: (row) => {
+        const isAnomaly = row.anomaly_status === 'Anomaly';
+        return (
+          <span style={{
+            background: isAnomaly ? '#e74c3c20' : '#27ae6020',
+            color: isAnomaly ? '#e74c3c' : '#27ae60',
+            padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '0.8rem'
+          }}>
+            {row.anomaly_status}
+          </span>
+        );
+      }
+    },
+    {
+      header: 'Anomaly Score',
+      accessor: 'anomaly_score',
+      cell: (row) => {
+        const score = parseFloat(row.anomaly_score || 0);
+        const pct = (score * 100).toFixed(0);
+        const color = score >= 0.7 ? '#e74c3c' : score >= 0.4 ? '#f39c12' : '#27ae60';
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '80px', height: '8px', background: '#eee', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '4px' }} />
+            </div>
+            <span style={{ fontWeight: '600', color }}>{pct}%</span>
+          </div>
+        );
+      }
+    },
+    {
+      header: 'Severity',
+      accessor: 'severity',
+      cell: (row) => {
+        const sev = row.severity || 'N/A';
+        const color = sev === 'HIGH' ? '#e74c3c' : sev === 'MEDIUM' ? '#f39c12' : '#27ae60';
+        return (
+          <span style={{
+            background: color + '20', color: color,
+            padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '0.8rem'
+          }}>
+            {sev}
+          </span>
+        );
+      }
+    },
+    {
+      header: 'Timestamp',
+      accessor: 'prediction_timestamp',
+      cell: (row) => new Date(row.prediction_timestamp).toLocaleString()
     }
   ];
 
@@ -151,12 +215,12 @@ const CustomerPredictions = () => {
           )}
 
           {activeTab === 'anomaly' && (
-            <Card title="Anomaly Detection">
-              <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--medium)', fontFamily: 'var(--font-body)' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
-                <h3 style={{ color: 'var(--black)', marginBottom: '0.5rem' }}>Coming Soon</h3>
-                <p>Anomaly detection model is currently under development. Real-time anomaly alerts will appear here.</p>
-              </div>
+            <Card title="Anomaly Detection & Alerts">
+              {anomaly.length > 0 ? (
+                <Table columns={anomalyColumns} data={anomaly} />
+              ) : (
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--medium)' }}>No anomaly data available yet.</div>
+              )}
             </Card>
           )}
         </>

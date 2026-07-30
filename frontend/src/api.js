@@ -194,6 +194,10 @@ export const predictionAPI = {
   getMaintenance: async () => {
     const response = await apiClient.get('/predictions/maintenance');
     return response.data;
+  },
+  getAnomaly: async () => {
+    const response = await apiClient.get('/predictions/anomaly');
+    return response.data;
   }
 };
 

@@ -1,53 +1,103 @@
-[4:53 pm, 30/07/2026] +91 97905 21129: FastAPI
-React (Vite)
-PostgreSQL
-SQLAlchemy
-Scikit-learn
-RabbitMQ (for asynchronous event processing and notification generation)
-APScheduler (for scheduled reminders like overdue rentals and maintenance)
-FastAPI WebSockets (for delivering real-time notifications to connected users)
-[5:02 pm, 30/07/2026] +91 97905 21129: How is your team approaching this problem
+# Caterpillar Smart Rental Tracking System — System Architecture & Design Document
 
-Our team began by understanding the complete equipment rental workflow instead of jumping straight into development. We spent time analyzing how dealers, customers, fleet managers, and equipment interact throughout the rental lifecycle, which helped us define clear user roles, responsibilities, and workflows. Based on these discussions, we designed a structured database that captures every stage of the equipment lifecycle—from rental creation, site allocation, daily usage logging, and site transfers to maintenance history and rental completion—while preserving historical data for complete traceability.
+## 1. Executive Summary & Core Objective
+The **Caterpillar Smart Rental Tracking System** is an end-to-end, AI-powered platform designed to optimize heavy equipment rental operations across **Dealers**, **Customers**, and **Fleet Managers**. By combining real-time IoT telemetry, PyTorch machine learning models, strict role-based data isolation, and physical QR/RFID verification, the system provides total operational visibility, proactive maintenance, and automated exploitation prevention.
 
-With this foundation in place, we are developing ML models for Demand Forecasting, Utilization Prediction, Predictive Maintenance, and Anomaly Detection to generate meaningful operational insights. Once the ML modules are integrated, we are building a FastAPI-based backend that exposes secure REST APIs for authentication, data management, and seamless communication between the database, ML services, and the frontend. Finally, we are developing intuitive role-based dashboards that present real-time operational data, predictive insights, and actionable notifications, enabling every stakeholder to make faster and more informed decisions.
-[5:12 pm, 30/07/2026] +91 97905 21129: how are you planning to use AI in building your solution?
+---
 
-We are leveraging AI in two ways throughout this project. During development, we use AI-assisted tools to accelerate software engineering tasks such as generating boilerplate code, designing REST APIs, refining database queries, debugging, code reviews, documentation, and technical research. This enables our team to focus more on system architecture, business logic, and model development while improving development speed and code quality.
+## 2. Technology Stack & Infrastructure
 
-Within the solution itself, we incorporate machine learning to transform operational data into actionable insights. Historical rental, equipment usage, and maintenance data are used to build ML models for Demand Forecasting, Utilization Prediction, Predictive Maintenance, and Anomaly Detection. Instead of presenting raw predictions, these models generate recommendations and real-time alerts that help stakeholders optimize fleet allocation, schedule preventive maintenance, identify underutilized equipment, and detect abnormal usage patterns before they impact operations.
-[5:15 pm, 30/07/2026] +91 97905 21129: key features and unique selling point:
+| Layer | Technologies & Tools |
+|---|---|
+| **Backend API** | **FastAPI** (Python 3.14), Uvicorn async ASGI server |
+| **Database & ORM** | **PostgreSQL**, **SQLAlchemy** ORM, Alembic migrations |
+| **Machine Learning** | **PyTorch** (Deep Neural Networks), Scikit-Learn, Joblib |
+| **Frontend UI** | **React** (Vite), Vanilla CSS design system, Recharts |
+| **Event Bus & Messaging** | **RabbitMQ** (AMQP message broker for real-time alerts) |
+| **Task Scheduling** | **APScheduler** (Background cron jobs for overdue checks) |
+| **Real-Time Communication** | **FastAPI WebSockets** for push notifications |
+| **Physical Verification** | **HTML5 QR Code Scanner** (Webcam & Image Upload parser) |
 
-Key Features
-Complete Rental Management – Manage the entire equipment rental journey, from rental creation and site allocation to usage tracking, site transfers, maintenance, and rental completion.
-Role-Based Dashboards – Personalized dashboards for Dealers, Customers, and Fleet Managers, providing the information and controls relevant to each role.
-End-to-End Equipment Tracking – Every rental, transfer, maintenance activity, and usage log is recorded, giving users complete visibility into an equipment's history.
-ML-Powered Insights – Uses machine learning to forecast equipment demand, identify underutilized assets, predict maintenance needs, and detect unusual equipment behavior.
-Real-Time Notifications – Keeps users informed with alerts for maintenance, demand changes, equipment transfers, overdue rentals, and detected anomalies.
-Fleet Monitoring & Analytics – Offers a centralized view of equipment availability, utilization, and operational performance to support better decision-making.
+---
 
-Our solution goes beyond simply tracking equipment rentals. It combines historical equipment data with machine learning to help users make informed decisions before problems arise. Instead of only showing the current status of an asset, the platform provides insights into how equipment is being used, predicts future operational needs, and proactively alerts stakeholders about potential issues. This enables dealers, customers, and fleet managers to improve equipment utilization, reduce downtime, and manage their rental operations more efficiently from a single, intelligent platform.
-[5:21 pm, 30/07/2026] +91 97905 21129: Outstanding Milestones Planned for the Next 15 Hours
-Complete the Anomaly Detection model and integrate it with the existing ML pipeline.
-Connect all four ML models to the backend and expose prediction APIs for the application.
-Build and integrate role-based dashboards for Dealers, Customers, and Fleet Managers.
-Implement the remaining core workflows, including equipment allocation, usage tracking, site transfers, maintenance logging, and notifications.
-Integrate the frontend with the backend APIs to enable a seamless end-to-end user experience.
-Carry out end-to-end testing, resolve integration issues, and fine-tune the application.
-Prepare the final demo, presentation, and supporting project documentation.
-[5:49 pm, 30/07/2026] +91 97905 21129: Milestones Achieved (as of 6:00 PM)
-Analyzed the problem statement and finalized the overall system architecture, user workflows, and role-based access for Dealers, Customers, and Fleet Managers.
-Designed and normalized the database schema to support the complete equipment rental lifecycle, including rentals, equipment usage, maintenance history, site transfers, ML predictions, and notifications.
-Generated a synthetic dataset to simulate equipment rental and operational data required for training the machine learning models.
-Developed and trained three machine learning models for Demand Forecasting, Utilization Prediction, and Predictive Maintenance.
-Implemented the Flask backend with the core APIs for database operations and future integration with the frontend and ML services.
-Defined the notification workflow to convert ML predictions into actionable alerts for different user roles.
-Built the initial frontend with user authentication, laying the foundation for integrating role-based dashboards and application features.
-[5:50 pm, 30/07/2026] +91 97905 21129: Milestones Achieved (as of 6:00 PM)
-1. Analyzed the problem statement and finalized the overall system architecture, user workflows, and role-based access for Dealers, Customers, and Fleet Managers.
-2. Designed and normalized the database schema to support the complete equipment rental lifecycle, including rentals, equipment usage, maintenance history, site transfers, ML predictions, and notifications.
-3. Generated a synthetic dataset to simulate equipment rental and operational data required for training the machine learning models.
-4. Developed and trained three machine learning models for Demand Forecasting, Utilization Prediction, and Predictive Maintenance.
-5. Implemented the FastAPI backend with the core APIs for database operations and future integration with the frontend and ML services.
-6. Defined the notification workflow to convert ML predictions into actionable alerts for different user roles.
-7. Built the initial frontend with user authentication, laying the foundation for integrating role-based dashboards and application features.
+## 3. System Architecture & Component Interaction
+
+```
+[ Frontend (React/Vite) ] 
+       │  ▲
+ HTTP  │  │ WebSockets / QR Scan
+       ▼  │
+[ FastAPI Backend ] ─── (APScheduler) ───► [ Overdue Rental Cron Job ]
+       │  ▲
+       │  │ ORM Queries
+       ▼  │
+[ PostgreSQL DB ] ◄─── [ PyTorch ML Pipeline ] ───► [ RabbitMQ Event Bus ]
+                            (4 Models)                (Real-time Overutilization Alerts)
+```
+
+---
+
+## 4. Machine Learning Services (PyTorch Deep Learning Engine)
+
+The platform integrates **four specialized PyTorch neural networks** running in parallel:
+
+### A. Demand Forecasting Model
+- **Input Features**: `equipment_type`, `model`, `site_id`, `season`, `region`, `month`, `avg_engine_hours`
+- **Output**: Expected monthly demand count per equipment type and site.
+- **Enrichment**: Displays Caterpillar model numbers (`CAT 320 GC`, `CAT 950 GC`, `CAT D6 LMT`, `CAT 777 OHT`).
+
+### B. Utilization & Exploitation Prediction Model
+- **Input Features**: `rental_days`, `engine_hours_per_day`, `idle_hours_per_day`, `operator_experience`
+- **Outputs**:
+  1. `utilization_score` (0–100%)
+  2. `predicted_idle_hours`
+  3. `status` (`Running`, `Idle`, `Overutilized`)
+- **Automated Exploitation Alert**: When `utilization_score > 0.90`, an instant **HIGH priority Overutilization Alert** is pushed to RabbitMQ for Dealer and Fleet Manager intervention.
+
+### C. Predictive Maintenance Model
+- **Input Features**: `equipment_age`, `engine_temperature`, `battery_voltage`, `days_since_last_service`, `fault_code_count`
+- **Outputs**: `maintenance_probability` (Risk % level), `predicted_service_date`, `confidence` score.
+
+### D. Anomaly Detection Model
+- **Architecture**: Deep Neural Network Classifier with Sigmoid output.
+- **Outputs**: `anomaly_status` (`Normal` vs `Anomaly`), `anomaly_score` (0–100%), `severity` (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+
+---
+
+## 5. Security & Role-Based Data Isolation Architecture
+
+To prevent cross-tenant data leakage, strict data isolation is enforced across both REST APIs and ML Prediction services:
+
+| Role | Permitted Access & Data Boundaries |
+|---|---|
+| **CatAdmin** | Unrestricted global access across all dealers, customers, sites, and ML predictions. |
+| **Dealer** | Scoped strictly to equipment owned by the dealer. Predictions are filtered to machines with `status == "RENTED"`. Dealer 1 cannot view Dealer 2's customers or telemetry. |
+| **Customer** | Scoped strictly to active rentals linked to their `customer_id`. Cannot view other customer's equipment or predictions. |
+| **Fleet Manager** | Scoped strictly to the active machines operating on their assigned `site_id`. |
+
+---
+
+## 6. Physical Equipment Check-In / Check-Out & Operator Tracking
+
+1. **QR & Image Upload Scanner**: Integrated into `FleetCheckin.jsx` using `html5-qrcode`. Fleet Managers can scan physical machine QR codes using a device camera or upload a QR image.
+2. **Operator Assignment**: Upon checking in a machine, the Fleet Manager can assign an existing operator or register a new operator (`operator_name`, `operator_id`), maintaining an unbroken audit chain between machines and operators.
+3. **Machine Transfers**: Site-to-site machine transfers update rental site associations in real time and trigger notification alerts to the customer.
+
+---
+
+## 7. Global Data Presentation & Deduplication Strategy
+
+- **Single-Row Latest Prediction Deduplication**: To eliminate noisy historical telemetry snapshots, prediction endpoints (`/predictions/*`) execute dynamic Python-level deduplication (`_enrich_and_deduplicate`), returning only the **single latest prediction per machine**.
+- **Model Number Enrichment**: Every prediction record automatically resolves and displays the exact Caterpillar Model (e.g., `CAT 320 GC`, `CAT 950 GC`, `CAT D6 LMT`, `CAT 777 OHT`).
+
+---
+
+## 8. Summary of Milestones Completed
+
+- [x] **Milestone 1**: System Architecture & Role-Based Access Scoping.
+- [x] **Milestone 2**: Normalized PostgreSQL Database Schema & SQLAlchemy ORM mapping.
+- [x] **Milestone 3**: Training and validation of PyTorch Models (Demand, Utilization, Maintenance, Anomaly).
+- [x] **Milestone 4**: FastAPI REST API Layer, Authentication, and RabbitMQ / APScheduler integration.
+- [x] **Milestone 5**: Role-based Frontend Dashboards with Recharts, QR Scanner, and Data Isolation.
+- [x] **Milestone 6**: End-to-End System Testing, Bug Fixes (Deduplication, Active Rental filtering, Operator creation).
+- [x] **Milestone 7**: System Design Specification & Complete Chat Documentation.
