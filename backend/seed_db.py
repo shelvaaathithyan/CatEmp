@@ -143,6 +143,10 @@ def seed_database():
         db.add(CheckinCheckout(rental_id=rental_b.id, performed_by=fleet_mgrs[1].id, action="CHECKOUT", timestamp=now - timedelta(days=20)))
         db.add(CheckinCheckout(rental_id=rental_b.id, performed_by=fleet_mgrs[1].id, action="CHECKIN", timestamp=now - timedelta(days=10)))
         db.add(MaintenanceHistory(equipment_id="EX-002", service_date=today - timedelta(days=5), service_type="Oil Change", remarks="Routine 500-hour service"))
+        
+        # Usage for rental_b (Diana Builders)
+        for i in range(5):
+            db.add(EquipmentUsage(rental_id=rental_b.id, equipment_id="EX-002", site_id=sites[2].id, usage_date=today - timedelta(days=20-i), engine_hours_per_day=7.5, idle_hours_per_day=2.5, rental_days=i+1, last_operator_id="OP-002"))
 
         # Scenario C: WL-001 (Active)
         rental_c = Rental(
