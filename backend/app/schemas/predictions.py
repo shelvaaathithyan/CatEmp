@@ -53,3 +53,20 @@ class DemandPredictionResponse(DemandPredictionBase):
 
     class Config:
         from_attributes = True
+
+# Anomaly Prediction
+class AnomalyPredictionBase(BaseModel):
+    prediction_timestamp: datetime
+    equipment_id: str
+    anomaly_status: str
+    anomaly_score: Optional[Decimal] = None
+    severity: Optional[str] = None
+
+class AnomalyPredictionCreate(AnomalyPredictionBase):
+    pass
+
+class AnomalyPredictionResponse(AnomalyPredictionBase):
+    id: int
+
+    class Config:
+        from_attributes = True

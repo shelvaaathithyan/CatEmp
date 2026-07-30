@@ -13,6 +13,7 @@ from .maintenance import MaintenanceHistoryBase, MaintenanceHistoryCreate, Maint
 from .predictions import (
     MaintenancePredictionBase, MaintenancePredictionCreate, MaintenancePredictionResponse,
     UtilizationPredictionBase, UtilizationPredictionCreate, UtilizationPredictionResponse,
-    DemandPredictionBase, DemandPredictionCreate, DemandPredictionResponse
+    DemandPredictionBase, DemandPredictionCreate, DemandPredictionResponse,
+    AnomalyPredictionBase, AnomalyPredictionCreate, AnomalyPredictionResponse
 )
 from .notification import NotificationBase, NotificationCreate, NotificationResponse

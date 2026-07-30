@@ -11,6 +11,8 @@ class TelemetryGenerator:
             {
                 "equipment_id": "EX-001",
                 "equipment_type": "Excavator",
+                "model": "320 GC",
+                "dealer_id": 1,
                 "site_id": 1,
                 "engine_hours_per_day": 8.5,
                 "idle_hours_per_day": 2.0,
@@ -37,6 +39,8 @@ class TelemetryGenerator:
             {
                 "equipment_id": "EX-002",
                 "equipment_type": "Excavator",
+                "model": "336",
+                "dealer_id": 1,
                 "site_id": 2,
                 "engine_hours_per_day": 1.0,
                 "idle_hours_per_day": 6.5,
@@ -52,8 +56,8 @@ class TelemetryGenerator:
                 "fault_code_count": 2,
                 "operator_experience": 2,
                 "weather": "Rainy",
-                "project_phase": "Grading",
-                "season": "Spring",
+                "project_phase": "Foundation",
+                "season": "PostMonsoon",
                 "region": "East",
                 "rental_days": 15,
                 "previous_rental_count": 25,
@@ -63,6 +67,8 @@ class TelemetryGenerator:
             {
                 "equipment_id": "WL-001",
                 "equipment_type": "Wheel Loader",
+                "model": "950 GC",
+                "dealer_id": 2,
                 "site_id": 3,
                 "engine_hours_per_day": 7.0,
                 "idle_hours_per_day": 1.5,
@@ -78,9 +84,9 @@ class TelemetryGenerator:
                 "fault_code_count": 1,
                 "operator_experience": 4,
                 "weather": "Cloudy",
-                "project_phase": "Loading",
-                "season": "Fall",
-                "region": "Midwest",
+                "project_phase": "Structural",
+                "season": "Winter",
+                "region": "North",
                 "rental_days": 20,
                 "previous_rental_count": 18,
                 "avg_engine_hours": 6.5,
@@ -89,6 +95,8 @@ class TelemetryGenerator:
             {
                 "equipment_id": "BD-001",
                 "equipment_type": "Bulldozer",
+                "model": "D6",
+                "dealer_id": 1,
                 "site_id": 1,
                 "engine_hours_per_day": 6.0,
                 "idle_hours_per_day": 2.0,
@@ -163,4 +171,7 @@ class TelemetryGenerator:
 
     def build_utilization_payload(self, record: dict) -> dict:
         return self.predictor.predict_utilization(record)
+
+    def build_anomaly_payload(self, record: dict) -> dict:
+        return self.predictor.predict_anomaly(record)
 

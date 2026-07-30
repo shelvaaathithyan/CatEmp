@@ -15,21 +15,25 @@ import DealerDashboard from './pages/dealer/DealerDashboard';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import FleetDashboard from './pages/fleet/FleetDashboard';
 import FleetSites from './pages/fleet/FleetSites';
-import FleetUsage from './pages/fleet/FleetUsage';
-import FleetTransfers from './pages/fleet/FleetTransfers';
 import FleetCheckin from './pages/fleet/FleetCheckin';
+import FleetTransfers from './pages/fleet/FleetTransfers';
+import FleetUsage from './pages/fleet/FleetUsage';
+import FleetOperators from './pages/fleet/FleetOperators';
+import FleetPredictions from './pages/fleet/FleetPredictions';
 import FleetNotifications from './pages/fleet/FleetNotifications';
 
 import DealerMachines from './pages/dealer/DealerMachines';
 import DealerRentals from './pages/dealer/DealerRentals';
 import DealerMaintenance from './pages/dealer/DealerMaintenance';
 import DealerNotifications from './pages/dealer/DealerNotifications';
+import DealerPredictions from './pages/dealer/DealerPredictions';
 
 import CustomerRentals from './pages/customer/CustomerRentals';
 import CustomerOperators from './pages/customer/CustomerOperators';
 import CustomerSites from './pages/customer/CustomerSites';
 import CustomerUsage from './pages/customer/CustomerUsage';
 import CustomerNotifications from './pages/customer/CustomerNotifications';
+import CustomerPredictions from './pages/customer/CustomerPredictions';
 
 const PublicOnlyRoute = ({ children }) => {
   const { user, token, isLoading } = useAuth();
@@ -73,7 +77,7 @@ function App() {
               <Route path="machines" element={<DealerMachines />} />
               <Route path="rentals" element={<DealerRentals />} />
               <Route path="maintenance" element={<DealerMaintenance />} />
-              <Route path="predictions" element={<PlaceholderPage title="Predictions" description="AI-driven utilization predictions" />} />
+              <Route path="predictions" element={<DealerPredictions />} />
               <Route path="notifications" element={<DealerNotifications />} />
             </Route>
 
@@ -84,7 +88,7 @@ function App() {
               <Route path="rentals" element={<CustomerRentals />} />
               <Route path="operators" element={<CustomerOperators />} />
               <Route path="usage" element={<CustomerUsage />} />
-              <Route path="predictions" element={<PlaceholderPage title="Predictions" description="Demand predictions" />} />
+              <Route path="predictions" element={<CustomerPredictions />} />
               <Route path="notifications" element={<CustomerNotifications />} />
             </Route>
 
@@ -92,9 +96,11 @@ function App() {
             <Route path="/fleet" element={<ProtectedRoute allowedRoles={['Fleet Manager']}><FleetManagerLayout /></ProtectedRoute>}>
               <Route path="dashboard" element={<FleetDashboard />} />
               <Route path="site" element={<FleetSites />} />
-              <Route path="usage" element={<FleetUsage />} />
-              <Route path="transfers" element={<FleetTransfers />} />
               <Route path="checkin" element={<FleetCheckin />} />
+              <Route path="transfers" element={<FleetTransfers />} />
+              <Route path="operators" element={<FleetOperators />} />
+              <Route path="usage" element={<FleetUsage />} />
+              <Route path="predictions" element={<FleetPredictions />} />
               <Route path="notifications" element={<FleetNotifications />} />
             </Route>
 

@@ -28,7 +28,6 @@ const CustomerSites = () => {
       accessor: 'site_name',
       cell: (row) => <span style={{ fontWeight: 'bold' }}>{row.site_name}</span>
     },
-    { header: 'Location', accessor: 'location' },
     {
       header: 'Fleet Managers',
       accessor: 'fleet_managers',

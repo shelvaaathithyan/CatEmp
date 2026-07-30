@@ -179,4 +179,22 @@ export const notificationAPI = {
   }
 };
 
+// ==========================================
+// Prediction APIs
+// ==========================================
+export const predictionAPI = {
+  getDemand: async () => {
+    const response = await apiClient.get('/predictions/demand');
+    return response.data;
+  },
+  getUtilization: async () => {
+    const response = await apiClient.get('/predictions/utilization');
+    return response.data;
+  },
+  getMaintenance: async () => {
+    const response = await apiClient.get('/predictions/maintenance');
+    return response.data;
+  }
+};
+
 export default apiClient;

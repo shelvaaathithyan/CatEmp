@@ -94,10 +94,10 @@ def get_fleet_manager_kpis(db: Session, fm_user_id: int):
     day_start = datetime.combine(today, datetime.min.time())
     
     today_checkins = db.query(func.count(CheckinCheckout.id)).join(Rental)\
-        .filter(Rental.site_id == site.id, CheckinCheckout.action == 'CHECKIN', CheckinCheckout.timestamp >= day_start).scalar() or 0
+        .filter(Rental.site_id == site.id, CheckinCheckout.action.in_(['CHECKIN', 'CHECK-IN', 'CHECK_IN']), CheckinCheckout.timestamp >= day_start).scalar() or 0
         
     today_checkouts = db.query(func.count(CheckinCheckout.id)).join(Rental)\
-        .filter(Rental.site_id == site.id, CheckinCheckout.action == 'CHECKOUT', CheckinCheckout.timestamp >= day_start).scalar() or 0
+        .filter(Rental.site_id == site.id, CheckinCheckout.action.in_(['CHECKOUT', 'CHECK-OUT', 'CHECK_OUT']), CheckinCheckout.timestamp >= day_start).scalar() or 0
 
     return {
         "assigned_site_id": site.id,

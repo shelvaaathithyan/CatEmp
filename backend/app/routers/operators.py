@@ -13,10 +13,10 @@ router = APIRouter(prefix="/operators", tags=["Operators"])
 @router.get("/", response_model=List[OperatorResponse])
 def list_operators(
     db: Session = Depends(get_db),
-    current_user: User = Depends(RoleChecker(["CatAdmin", "Customer"]))
+    current_user: User = Depends(RoleChecker(["CatAdmin", "Customer", "Fleet Manager"]))
 ):
-    """List all operators for the logged in customer."""
-    return operator_service.get_operators_for_customer(db, current_user.id)
+    """List operators based on role."""
+    return operator_service.get_operators_for_user(db, current_user)
 
 @router.post("/", response_model=OperatorResponse)
 def create_operator(

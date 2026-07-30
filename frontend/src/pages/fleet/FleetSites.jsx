@@ -21,8 +21,8 @@ const FleetSites = () => {
   }, []);
 
   const columns = [
-    { header: 'Site ID', accessor: 'id' },
-    { header: 'Location', accessor: 'location' },
+    { header: 'Site Code', accessor: 'site_code', cell: (row) => <span style={{ fontWeight: 'bold' }}>{row.site_code}</span> },
+    { header: 'Site Name', accessor: 'site_name' },
     { header: 'Customer ID', accessor: 'customer_id' }
   ];
 

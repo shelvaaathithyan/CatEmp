@@ -40,3 +40,16 @@ class DemandPrediction(Base):
 
     # Relationships
     site = relationship("Site")
+
+class AnomalyPrediction(Base):
+    __tablename__ = "anomaly_predictions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    equipment_id = Column(String(50), ForeignKey("machines.equipment_id"), nullable=False)
+    prediction_timestamp = Column(TIMESTAMP, nullable=False)
+    anomaly_status = Column(String(30), nullable=False)
+    anomaly_score = Column(Numeric(5, 4))
+    severity = Column(String(20))
+
+    # Relationships
+    machine = relationship("Machine", back_populates="anomaly_predictions")

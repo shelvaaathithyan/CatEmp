@@ -1,0 +1,314 @@
+// title
+title Caterpillar Smart Rental Tracking System
+
+// =====================================================
+// USERS
+// =====================================================
+
+users [icon: user, color: yellow] {
+  id serial pk
+  role varchar(30)
+  name varchar(100)
+  email varchar(150) unique
+  password_hash text
+  phone varchar(20)
+  created_at timestamp
+}
+
+// =====================================================
+// DEALERS
+// =====================================================
+
+dealers [icon: building, color: blue] {
+  id serial pk
+  user_id int
+  company_name varchar(150)
+  address text
+}
+
+// =====================================================
+// CUSTOMERS
+// =====================================================
+
+customers [icon: briefcase, color: green] {
+  id serial pk
+  user_id int
+  company_name varchar(150)
+}
+
+// =====================================================
+// CUSTOMER SITES
+// =====================================================
+
+sites [icon: map-pin, color: orange] {
+  id serial pk
+  customer_id int
+  site_code varchar(20)
+  site_name varchar(100)
+  location text
+}
+
+// =====================================================
+// FLEET MANAGERS
+// =====================================================
+
+fleet_managers [icon: user-check, color: cyan] {
+  id serial pk
+  user_id int
+  site_id int
+}
+
+// =====================================================
+// MACHINES
+// =====================================================
+
+machines [icon: truck, color: red] {
+  equipment_id varchar(50) pk
+  dealer_id int
+  equipment_type varchar(50)
+  model varchar(100)
+  serial_number varchar(100)
+  status varchar(30)
+}
+
+// =====================================================
+// RENTAL CONTRACT
+// =====================================================
+
+rentals [icon: clipboard, color: teal] {
+  id serial pk
+  equipment_id varchar(50)
+  customer_id int
+  site_id int
+  fleet_manager_id int
+
+  check_in_date date
+  expected_return_date date
+  actual_return_date date
+
+  rental_cost decimal
+  rental_status varchar(30)
+
+  created_at timestamp
+}
+
+// =====================================================
+// OPERATORS
+// =====================================================
+
+operators [icon: user-circle, color: pink] {
+  operator_id varchar(20) pk
+  customer_id int
+  operator_name varchar(100)
+}
+
+// =====================================================
+// SITE TRANSFERS
+// =====================================================
+
+site_transfers [icon: repeat, color: orange] {
+  id serial pk
+  rental_id int
+  equipment_id varchar(50)
+
+  from_site_id int
+  to_site_id int
+
+  transfer_date timestamp
+  transferred_by int
+
+  remarks text
+}
+
+// =====================================================
+// CHECK-IN / CHECK-OUT
+// =====================================================
+
+checkin_checkout [icon: qr-code, color: emerald] {
+  id serial pk
+  rental_id int
+  performed_by int
+  action varchar(20)
+  timestamp timestamp
+  remarks text
+}
+
+// =====================================================
+// EQUIPMENT USAGE
+// (Problem Statement Dataset)
+// =====================================================
+
+equipment_usage [icon: activity, color: indigo] {
+  id serial pk
+  rental_id int
+  equipment_id varchar(50)
+
+  usage_date date
+
+  engine_hours_per_day decimal
+  idle_hours_per_day decimal
+
+  rental_days int
+
+  last_operator_id varchar(20)
+}
+
+// =====================================================
+// MAINTENANCE HISTORY
+// =====================================================
+
+maintenance_history [icon: tool, color: gold] {
+  id serial pk
+  equipment_id varchar(50)
+  service_date date
+  service_type varchar(100)
+  remarks text
+}
+
+// =====================================================
+// ML - MAINTENANCE
+// =====================================================
+
+maintenance_predictions [icon: cpu, color: brown] {
+  id serial pk
+  equipment_id varchar(50)
+  prediction_timestamp timestamp
+  maintenance_probability decimal
+  predicted_service_date date
+  confidence decimal
+}
+
+// =====================================================
+// ML - UTILIZATION
+// =====================================================
+
+utilization_predictions [icon: alert-circle, color: purple] {
+  id serial pk
+  prediction_timestamp timestamp
+  equipment_id varchar(50)
+  utilization_score decimal
+  predicted_idle_hours decimal
+  status varchar(30)
+}
+
+// =====================================================
+// ML - DEMAND FORECAST
+// =====================================================
+
+demand_predictions [icon: trending-up, color: violet] {
+  id serial pk
+  prediction_timestamp timestamp
+  equipment_type varchar(50)
+  site_id int
+  prediction_period varchar(30)
+  expected_demand int
+}
+
+// =====================================================
+// ML - ANOMALY DETECTION
+// =====================================================
+
+anomaly_predictions [icon: alert-triangle, color: red] {
+  id serial pk
+  prediction_timestamp timestamp
+  equipment_id varchar(50)
+  anomaly_status varchar(30)
+  anomaly_score decimal
+  severity varchar(20)
+}
+
+// =====================================================
+// NOTIFICATIONS
+// =====================================================
+
+notifications [icon: bell, color: silver] {
+  id serial pk
+  user_id int
+  equipment_id varchar(50)
+
+  notification_type varchar(30)
+
+  title varchar(150)
+  message text
+
+  priority varchar(20)
+
+  is_read boolean
+
+  created_at timestamp
+}
+
+// =====================================================
+// RELATIONSHIPS
+// =====================================================
+
+// Users
+
+dealers.user_id > users.id
+customers.user_id > users.id
+fleet_managers.user_id > users.id
+
+// Customer
+
+sites.customer_id > customers.id
+fleet_managers.site_id > sites.id
+
+// Machines
+
+machines.dealer_id > dealers.id
+
+// Rentals
+
+rentals.equipment_id > machines.equipment_id
+rentals.customer_id > customers.id
+rentals.site_id > sites.id
+rentals.fleet_manager_id > fleet_managers.id
+
+// Operators
+
+operators.customer_id > customers.id
+
+// Site Transfers
+
+site_transfers.rental_id > rentals.id
+site_transfers.equipment_id > machines.equipment_id
+
+site_transfers.from_site_id > sites.id
+site_transfers.to_site_id > sites.id
+
+site_transfers.transferred_by > fleet_managers.id
+
+// Check-In / Check-Out
+
+checkin_checkout.rental_id > rentals.id
+checkin_checkout.performed_by > fleet_managers.id
+
+// Equipment Usage
+
+equipment_usage.rental_id > rentals.id
+equipment_usage.equipment_id > machines.equipment_id
+equipment_usage.site_id > sites.id
+equipment_usage.last_operator_id > operators.operator_id
+
+// Maintenance
+
+maintenance_history.equipment_id > machines.equipment_id
+
+maintenance_predictions.equipment_id > machines.equipment_id
+
+// Utilization
+
+utilization_predictions.equipment_id > machines.equipment_id
+
+// Demand
+
+demand_predictions.site_id > sites.id
+
+// Anomaly
+
+anomaly_predictions.equipment_id > machines.equipment_id
+
+// Notifications
+
+notifications.user_id > users.id
+notifications.equipment_id > machines.equipment_id

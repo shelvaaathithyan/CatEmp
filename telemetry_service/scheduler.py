@@ -31,12 +31,14 @@ class TelemetryScheduler:
             demand_payload = self.generator.build_demand_payload(record)
             maintenance_payload = self.generator.build_maintenance_payload(record)
             utilization_payload = self.generator.build_utilization_payload(record)
+            anomaly_payload = self.generator.build_anomaly_payload(record)
             
             # 3. Call the FastAPI APIs and 4. Log responses
             await self.api_client.send_telemetry(
                 demand_payload, 
                 maintenance_payload, 
-                utilization_payload
+                utilization_payload,
+                anomaly_payload
             )
             
         logger.info("=" * 48)

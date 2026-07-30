@@ -19,3 +19,4 @@ class Machine(Base):
     maintenance_predictions = relationship("MaintenancePrediction", back_populates="machine")
     utilization_predictions = relationship("UtilizationPrediction", back_populates="machine")
     notifications = relationship("Notification", back_populates="machine")
+    anomaly_predictions = relationship("AnomalyPrediction", back_populates="machine")

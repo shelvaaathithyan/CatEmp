@@ -1,15 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import NotificationList from '../../components/notifications/NotificationList';
+import SendNotificationModal from '../../components/notifications/SendNotificationModal';
+import { useAuth } from '../../context/AuthContext';
 
 const DealerNotifications = () => {
-  return (
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>Alerts & Notifications</h1>
-        <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Stay updated on maintenance flags and critical fleet events.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)', margin: 0 }}>Dealer Alerts</h1>
+            <button 
+                onClick={() => setIsModalOpen(true)}
+                style={{ 
+                    background: 'var(--black)', color: 'white', padding: '0.75rem 1.5rem', 
+                    borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold' 
+                }}
+            >
+                + Compose Notification
+            </button>
+        </div>
+        <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)', marginBottom: '2rem' }}>Critical alerts regarding your machine fleet and maintenance schedules.</p>
+        
+        <NotificationList />
+        <SendNotificationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       </div>
-      
-      <NotificationList />
     </div>
   );
 };

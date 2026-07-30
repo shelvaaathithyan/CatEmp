@@ -11,5 +11,5 @@ from .site_transfer import SiteTransfer
 from .checkin_checkout import CheckinCheckout
 from .equipment_usage import EquipmentUsage
 from .maintenance import MaintenanceHistory
-from .predictions import MaintenancePrediction, UtilizationPrediction, DemandPrediction
+from .predictions import MaintenancePrediction, UtilizationPrediction, DemandPrediction, AnomalyPrediction
 from .notification import Notification
