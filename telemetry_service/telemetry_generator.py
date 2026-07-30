@@ -1,9 +1,11 @@
 import random
 from datetime import datetime, timezone
 import uuid
+from ml_predictor import MLPredictor
 
 class TelemetryGenerator:
     def __init__(self):
+        self.predictor = MLPredictor()
         # Initialize realistic state for some machines
         self.machines = [
             {
@@ -154,29 +156,11 @@ class TelemetryGenerator:
         return records
 
     def build_demand_payload(self, record: dict) -> dict:
-        return {
-            "prediction_timestamp": record["timestamp"],
-            "equipment_type": record["equipment_type"],
-            "site_id": record["site_id"],
-            "prediction_period": "Next 30 Days",
-            "expected_demand": random.randint(1, 10)
-        }
+        return self.predictor.predict_demand(record)
 
     def build_maintenance_payload(self, record: dict) -> dict:
-        from datetime import timedelta
-        return {
-            "equipment_id": record["equipment_id"],
-            "prediction_timestamp": record["timestamp"],
-            "maintenance_probability": round(random.uniform(0.01, 0.99), 2),
-            "predicted_service_date": (datetime.now() + timedelta(days=random.randint(1, 30))).strftime("%Y-%m-%d"),
-            "confidence": round(random.uniform(0.50, 0.99), 2)
-        }
+        return self.predictor.predict_maintenance(record)
 
     def build_utilization_payload(self, record: dict) -> dict:
-        return {
-            "prediction_timestamp": record["timestamp"],
-            "equipment_id": record["equipment_id"],
-            "utilization_score": record["utilization_rate"],
-            "predicted_idle_hours": round(record["idle_hours_per_day"] * 30, 2),
-            "status": record["machine_status"]
-        }
+        return self.predictor.predict_utilization(record)
+
