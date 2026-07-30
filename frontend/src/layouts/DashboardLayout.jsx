@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Bell } from 'lucide-react';
 import gsap from 'gsap';
 import styles from './Layout.module.css';
 import CatLogo from '../assets/logos/catlogo.png';
@@ -48,13 +49,24 @@ const DashboardLayout = ({ title, links }) => {
       
       <div className={styles.mainWrapper}>
         <header className={styles.navbar}>
-          {user && (
-            <div className={styles.userInfo}>
-              <span className={styles.userName}>{user.name}</span>
-              <span className={styles.userRole}>{user.role}</span>
-            </div>
-          )}
-          <button onClick={handleLogout} className={styles.logoutBtn}>Logout</button>
+          <div className={styles.navActions}>
+            <button 
+              className={styles.notificationBtn} 
+              onClick={() => navigate('notifications')}
+              title="Notifications"
+            >
+              <Bell size={20} />
+              <span className={styles.notificationDot}></span>
+            </button>
+            
+            {user && (
+              <div className={styles.userInfo}>
+                <span className={styles.userName}>{user.name}</span>
+                <span className={styles.userRole}>{user.role === 'staff' ? 'Admin' : user.role === 'fleet manager' ? 'Fleet Manager' : user.role}</span>
+              </div>
+            )}
+            <button onClick={handleLogout} className={styles.logoutBtn}>Logout</button>
+          </div>
         </header>
         <main className={styles.contentWrapper} ref={contentRef}>
           <Outlet />
