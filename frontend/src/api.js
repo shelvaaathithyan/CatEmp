@@ -105,6 +105,10 @@ export const rentalAPI = {
     const response = await apiClient.get(`/rentals/?${params.toString()}`);
     return response.data;
   },
+  getDetails: async (id) => {
+    const response = await apiClient.get(`/rentals/${id}`);
+    return response.data;
+  },
   getTransfers: async () => {
     const response = await apiClient.get('/rentals/transfer');
     return response.data;

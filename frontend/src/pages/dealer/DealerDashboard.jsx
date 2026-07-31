@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
+import Table from '../../components/common/Table';
 import { dashboardAPI, notificationAPI } from '../../api';
+import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const DealerDashboard = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,36 +24,23 @@ const DealerDashboard = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div style={{ color: 'var(--text)' }}>Loading dashboard...</div>;
-  if (!data) return <div style={{ color: 'var(--error)' }}>Error loading dashboard.</div>;
-
-  const renderWidgetMachines = (widgetData) => {
-    if (!widgetData || !widgetData.machines || widgetData.machines.length === 0) return <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No machines in this category</p>;
-    return (
-      <ul style={{ listStyleType: 'none', padding: 0, marginTop: '10px' }}>
-        {widgetData.machines.slice(0, 3).map(m => (
-          <li key={m.equipment_id} style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
-            <strong style={{ color: 'var(--text)' }}>{m.equipment_id}</strong> - {m.model} ({m.equipment_type})
-          </li>
-        ))}
-        {widgetData.count > 3 && <li style={{ fontSize: '0.85rem', color: 'var(--accent)', marginTop: '8px', cursor: 'pointer' }}>+ {widgetData.count - 3} more...</li>}
-      </ul>
-    );
-  };
-
   const handleAction = async (insight) => {
     if (!insight.action_label) return;
     
-    // If it's an internal action, just alert and return
     if (!insight.action_label.startsWith("Notify")) {
-      alert(`${insight.action_label} for ${insight.equipment_id} has been logged.`);
+      alert(`${insight.action_label} for ${insight.equipment_id} has been logged locally.`);
       return;
+    }
+
+    if (!insight.customer_user_id) {
+        alert(`No customer found to send the notification to for ${insight.equipment_id}.`);
+        return;
     }
 
     try {
       await notificationAPI.sendManual({
         recipient_id: insight.customer_user_id,
-        title: insight.type === 'MAINTENANCE' ? 'Maintenance Scheduled' : 'Machine Alert',
+        title: `Action Required: ${insight.type}`,
         message: insight.message,
         priority: 'HIGH',
         notification_type: 'ALERT'
@@ -61,97 +52,185 @@ const DealerDashboard = () => {
     }
   };
 
+  if (loading) return <div style={{ color: 'var(--text)' }}>Loading Dashboard...</div>;
+  if (!data) return <div style={{ color: 'var(--error)' }}>Error loading Dashboard.</div>;
+
+  const machineColumns = [
+    { header: 'Equipment ID', accessor: 'equipment_id', cell: (row) => <span style={{ fontWeight: '700', color: 'var(--black)' }}>{row.equipment_id}</span> },
+    { header: 'Model', accessor: 'model', cell: (row) => <span style={{ color: 'var(--medium)' }}>{row.model}</span> }
+  ];
+
   return (
-    <div>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>Dealer Dashboard</h1>
-        <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Overview of fleet operations and revenue.</p>
+    <div style={{ paddingBottom: '2rem' }}>
+      
+      {/* 1. INTERACTIVE KPI CARDS AT TOP */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '2rem' }}>
+        <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f9f9fa 100%)', border: '1px solid var(--border)', padding: '1.2rem', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.transform='translateY(-4px)'} onMouseOut={e=>e.currentTarget.style.transform='translateY(0)'}>
+          <h3 style={{ fontSize: '0.85rem', color: 'var(--medium)', margin: '0 0 5px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Total Fleet Size</h3>
+          <h2 style={{ fontSize: '2.2rem', margin: '0', color: 'var(--black)', fontWeight: '900' }}>{data.total_machines}</h2>
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f9f9fa 100%)', border: '1px solid var(--border)', padding: '1.2rem', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.transform='translateY(-4px)'} onMouseOut={e=>e.currentTarget.style.transform='translateY(0)'}>
+          <h3 style={{ fontSize: '0.85rem', color: 'var(--medium)', margin: '0 0 5px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Active Rentals</h3>
+          <h2 style={{ fontSize: '2.2rem', margin: '0', color: 'var(--success)', fontWeight: '900' }}>{data.rented_machines.count}</h2>
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f9f9fa 100%)', border: '1px solid var(--border)', padding: '1.2rem', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.transform='translateY(-4px)'} onMouseOut={e=>e.currentTarget.style.transform='translateY(0)'}>
+          <h3 style={{ fontSize: '0.85rem', color: 'var(--medium)', margin: '0 0 5px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Maintenance</h3>
+          <h2 style={{ fontSize: '2.2rem', margin: '0', color: 'var(--error)', fontWeight: '900' }}>{data.maintenance_machines.count}</h2>
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #fffde7 100%)', border: '1px solid var(--primary)', padding: '1.2rem', borderRadius: '16px', boxShadow: '0 4px 15px rgba(241,196,15,0.15)', transition: 'transform 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.transform='translateY(-4px)'} onMouseOut={e=>e.currentTarget.style.transform='translateY(0)'}>
+          <h3 style={{ fontSize: '0.85rem', color: 'var(--medium)', margin: '0 0 5px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Monthly Revenue</h3>
+          <h2 style={{ fontSize: '2rem', margin: '0', color: 'var(--black)', fontWeight: '900' }}>${data.revenue_this_month.toLocaleString()}</h2>
+        </div>
       </div>
 
-      {data.actionable_insights && data.actionable_insights.length > 0 && (
-        <div style={{ marginBottom: '2.5rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text)' }}>Actionable Insights</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {data.actionable_insights.map(insight => (
-              <div key={insight.id} style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderLeft: `4px solid ${insight.type === 'MAINTENANCE' ? 'var(--warning)' : insight.type === 'ANOMALY' ? 'var(--error)' : 'var(--primary)'}`,
-                padding: '1.5rem',
-                borderRadius: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                    <span style={{ fontWeight: '700', color: 'var(--text)' }}>{insight.equipment_id}</span>
-                    <span style={{ fontSize: '0.8rem', padding: '3px 8px', borderRadius: '12px', background: 'var(--background)', color: 'var(--text-secondary)' }}>
-                      {insight.type.replace('_', ' ')}
-                    </span>
+      {/* 2. MIDDLE ROW: Actionable Insights (Left) & Fleet Distribution (Right) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '20px', marginBottom: '2rem' }}>
+        
+        {/* ACTIONABLE INSIGHTS */}
+        {data.actionable_insights && data.actionable_insights.length > 0 ? (
+          <div style={{ 
+            background: 'var(--surface)', 
+            borderRadius: '16px', 
+            padding: '2rem',
+            boxShadow: 'var(--shadow-md)',
+            borderTop: '4px solid var(--primary)',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <h2 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)', color: 'var(--black)' }}>Urgent Action Required</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', overflowY: 'auto', maxHeight: '350px' }}>
+              {data.actionable_insights.map(insight => (
+                <div key={insight.id} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '15px 20px', backgroundColor: 'var(--background)', borderRadius: '12px',
+                  borderLeft: `4px solid ${insight.type === 'MAINTENANCE' ? 'var(--error)' : 'var(--primary)'}`
+                }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: '800', color: 'var(--black)', fontSize: '1.1rem' }}>{insight.equipment_id}</span>
+                      <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
+                        {insight.type.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <p style={{ color: 'var(--medium)', margin: 0, fontSize: '0.95rem' }}>{insight.message}</p>
                   </div>
-                  <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{insight.message}</p>
+                  {insight.action_label && (
+                    <button 
+                      onClick={() => handleAction(insight)}
+                      style={{
+                        padding: '10px 20px', backgroundColor: 'var(--black)', color: 'white',
+                        border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.15)'
+                      }}
+                      onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+                      onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+                    >
+                      {insight.action_label}
+                    </button>
+                  )}
                 </div>
-                {insight.action_label && (
-                  <button 
-                    onClick={() => handleAction(insight)}
-                    style={{
-                      background: 'var(--black)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.6rem 1.2rem',
-                      borderRadius: '8px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'background 0.2s'
-                    }}
-                  >
-                    {insight.action_label}
-                  </button>
-                )}
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div style={{ background: 'var(--surface)', borderRadius: '16px', padding: '2rem', boxShadow: 'var(--shadow-sm)', borderTop: '4px solid var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+             <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontWeight: '600' }}>No Urgent Actions Required.</p>
+          </div>
+        )}
+
+        {/* DONUT CHART */}
+        <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ fontSize: '1.2rem', color: 'var(--black)', marginBottom: '1rem' }}>Fleet Distribution</h3>
+          <div style={{ height: '250px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie 
+                  data={data.fleet_status_chart} 
+                  innerRadius={70} 
+                  outerRadius={100} 
+                  paddingAngle={5} 
+                  dataKey="value"
+                >
+                  {data.fleet_status_chart.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          {/* Custom Legend */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '10px' }}>
+            {data.fleet_status_chart.map((entry, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: entry.fill }} />
+                <span style={{ fontSize: '0.85rem', color: 'var(--medium)', fontWeight: '600' }}>{entry.name}</span>
               </div>
             ))}
           </div>
         </div>
-      )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-        <Card title="Revenue This Month">
-          <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--primary)' }}>${data.revenue_this_month.toLocaleString()}</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>From {data.active_customers} active customers</p>
-        </Card>
+      </div>
 
-        <Card title="Total Inventory">
-          <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--text)' }}>{data.total_machines}</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Owned machines</p>
-        </Card>
+      {/* 3. REVENUE TREND CHART (Full Width) */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ fontSize: '1.2rem', color: 'var(--black)', marginBottom: '1rem' }}>6-Month Revenue Trend</h3>
+          <div style={{ height: '280px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data.revenue_trend_chart} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="month" stroke="var(--medium)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--medium)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val / 1000}k`} />
+                <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+                <Area type="monotone" dataKey="revenue" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
-        <Card title="Currently Rented">
-          <h2 style={{ fontSize: '2rem', margin: '5px 0', color: 'var(--success)' }}>{data.rented_machines.count}</h2>
-          {renderWidgetMachines(data.rented_machines)}
-        </Card>
-
-        <Card title="Available Machines">
-          <h2 style={{ fontSize: '2rem', margin: '5px 0', color: 'var(--text)' }}>{data.available_machines.count}</h2>
-          {renderWidgetMachines(data.available_machines)}
-        </Card>
-
-        <Card title="Under Maintenance">
-          <h2 style={{ fontSize: '2rem', margin: '5px 0', color: 'var(--warning)' }}>{data.maintenance_machines.count}</h2>
-          {renderWidgetMachines(data.maintenance_machines)}
-        </Card>
-
-        <Card title="Underutilized Alerts">
-          <h2 style={{ fontSize: '2rem', margin: '5px 0', color: 'var(--error)' }}>{data.underutilized_machines.count}</h2>
-          {renderWidgetMachines(data.underutilized_machines)}
-        </Card>
-
+      {/* 4. LOGISTICS FEED */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <Card title="Upcoming Returns (7 Days)">
-          <h2 style={{ fontSize: '2rem', margin: '5px 0', color: 'var(--text)' }}>{data.upcoming_returns.count}</h2>
-          {renderWidgetMachines(data.upcoming_returns)}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '15px' }}>
+            <h2 style={{ fontSize: '2.5rem', margin: '0', color: 'var(--warning)', fontWeight: '900' }}>{data.upcoming_returns.count}</h2>
+            <span style={{ color: 'var(--medium)', fontWeight: '700', fontSize: '0.9rem', textTransform: 'uppercase' }}>Machines</span>
+          </div>
+          {data.upcoming_returns.machines && data.upcoming_returns.machines.length > 0 ? (
+            <Table 
+              columns={machineColumns} 
+              data={data.upcoming_returns.machines.slice(0, 5)} 
+              onRowClick={(machine) => navigate(`/dealer/machines/${machine.equipment_id}`)}
+            />
+          ) : (
+            <p style={{ color: 'var(--medium)' }}>None</p>
+          )}
+        </Card>
+        
+        <Card title="Underutilized Machines (Cost Saving)">
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '15px' }}>
+            <h2 style={{ fontSize: '2.5rem', margin: '0', color: 'var(--primary)', fontWeight: '900' }}>{data.underutilized_machines.count}</h2>
+            <span style={{ color: 'var(--medium)', fontWeight: '700', fontSize: '0.9rem', textTransform: 'uppercase' }}>Machines</span>
+          </div>
+          {data.underutilized_machines.machines && data.underutilized_machines.machines.length > 0 ? (
+            <Table 
+              columns={machineColumns} 
+              data={data.underutilized_machines.machines.slice(0, 5)} 
+              onRowClick={(machine) => navigate(`/dealer/machines/${machine.equipment_id}`)}
+            />
+          ) : (
+            <p style={{ color: 'var(--medium)' }}>None</p>
+          )}
         </Card>
       </div>
+      
     </div>
   );
 };

@@ -27,10 +27,30 @@ def get_machines(
 def get_machine(equipment_id: str, db: Session = Depends(get_db), current_user=Depends(allow_view_timeline)):
     """Get details of a specific machine."""
     from fastapi import HTTPException
+    from app.models.rental import Rental
+    from app.models.customer import Customer
     machine = machine_repo.get_by_equipment_id(db, equipment_id)
     if not machine:
         raise HTTPException(status_code=404, detail="Machine not found")
-    return machine
+        
+    machine_dict = {
+        "equipment_id": machine.equipment_id,
+        "equipment_type": machine.equipment_type,
+        "model": machine.model,
+        "serial_number": machine.serial_number,
+        "status": machine.status,
+        "dealer_id": machine.dealer_id,
+        "current_renter": None
+    }
+    
+    if machine.status == 'RENTED':
+        active_rental = db.query(Rental).filter(Rental.equipment_id == equipment_id, Rental.rental_status == 'ACTIVE').first()
+        if active_rental:
+            customer = db.query(Customer).filter(Customer.id == active_rental.customer_id).first()
+            if customer:
+                machine_dict['current_renter'] = customer.company_name
+
+    return machine_dict
 
 @router.get("/{equipment_id}/timeline")
 def get_machine_timeline(equipment_id: str, db: Session = Depends(get_db), current_user=Depends(allow_view_timeline)):

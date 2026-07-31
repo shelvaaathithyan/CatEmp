@@ -13,6 +13,7 @@ class MachineCreate(MachineBase):
 
 class MachineResponse(MachineBase):
     dealer_id: int
+    current_renter: Optional[str] = None
 
     class Config:
         from_attributes = True

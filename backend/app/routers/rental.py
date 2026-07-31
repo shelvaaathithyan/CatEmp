@@ -60,6 +60,35 @@ def get_rentals(
 
     return query.offset(skip).limit(limit).all()
 
+@router.get("/{rental_id}", response_model=RentalResponse)
+def get_rental(rental_id: int, db: Session = Depends(get_db), current_user=Depends(allow_view)):
+    """Get details of a specific rental."""
+    from fastapi import HTTPException
+    from app.models.customer import Customer
+    from app.models.fleet_manager import FleetManager
+    from app.models.dealer import Dealer
+    from app.models.machine import Machine
+    
+    rental = rental_repo.get(db, rental_id)
+    if not rental:
+        raise HTTPException(status_code=404, detail="Rental not found")
+        
+    if current_user.role == "Customer":
+        customer = db.query(Customer).filter(Customer.user_id == current_user.id).first()
+        if not customer or rental.customer_id != customer.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+    elif current_user.role == "Fleet Manager":
+        fm = db.query(FleetManager).filter(FleetManager.user_id == current_user.id).first()
+        if not fm or rental.fleet_manager_id != fm.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+    elif current_user.role == "Dealer":
+        dealer = db.query(Dealer).filter(Dealer.user_id == current_user.id).first()
+        machine = db.query(Machine).filter(Machine.equipment_id == rental.equipment_id).first()
+        if not dealer or not machine or machine.dealer_id != dealer.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+            
+    return rental
+
 @router.post("/", response_model=RentalResponse)
 def create_rental(rental_in: RentalCreate, db: Session = Depends(get_db), current_user=Depends(allow_rental_creation)):
     """Creates a new rental contract."""

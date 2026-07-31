@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
 import { rentalAPI } from '../../api';
 
 const CustomerRentals = () => {
+  const navigate = useNavigate();
   const [rentals, setRentals] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +63,11 @@ const CustomerRentals = () => {
         {loading ? (
           <div style={{ color: 'var(--text)' }}>Loading rentals...</div>
         ) : (
-          <Table columns={columns} data={rentals} />
+          <Table 
+            columns={columns} 
+            data={rentals} 
+            onRowClick={(row) => navigate(`/customer/rentals/${row.id}`)}
+          />
         )}
       </Card>
     </div>

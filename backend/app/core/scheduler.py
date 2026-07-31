@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.models.rental import Rental
 from app.models.machine import Machine
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import asyncio
+from app.models.fleet_manager import FleetManager
 
 scheduler = AsyncIOScheduler()
 
@@ -59,11 +60,66 @@ async def check_maintenance_due():
     finally:
         db.close()
 
+async def check_rental_expiring_tomorrow():
+    """Job that checks for rentals expiring exactly tomorrow and notifies stakeholders."""
+    print("Running scheduled job: check_rental_expiring_tomorrow")
+    db: Session = SessionLocal()
+    try:
+        tomorrow = datetime.now(timezone.utc).date() + timedelta(days=1)
+        expiring_rentals = db.query(Rental).filter(
+            Rental.rental_status == "ACTIVE",
+            Rental.expected_return_date == tomorrow
+        ).all()
+        
+        for rental in expiring_rentals:
+            machine = rental.machine
+            
+            # 1. Notify Customer
+            if rental.customer:
+                await rabbitmq.publish_message({
+                    "user_id": rental.customer.user_id,
+                    "title": "Rental Expiring Tomorrow",
+                    "message": f"Your rental for {machine.model} ({machine.equipment_id}) expires tomorrow. Please prepare for return.",
+                    "equipment_id": machine.equipment_id,
+                    "priority": "HIGH",
+                    "notification_type": "ALERT"
+                })
+                
+            # 2. Notify Dealer
+            if machine.dealer:
+                await rabbitmq.publish_message({
+                    "user_id": machine.dealer.user_id,
+                    "title": "Rental Return Expected",
+                    "message": f"Rental for {machine.model} ({machine.equipment_id}) expires tomorrow. Prepare for inventory intake.",
+                    "equipment_id": machine.equipment_id,
+                    "priority": "HIGH",
+                    "notification_type": "LOGISTICS"
+                })
+                
+            # 3. Notify Fleet Manager
+            if rental.site_id:
+                fleet_managers = db.query(FleetManager).filter(FleetManager.site_id == rental.site_id).all()
+                for fm in fleet_managers:
+                    await rabbitmq.publish_message({
+                        "user_id": fm.user_id,
+                        "title": "Machine Return Deadline",
+                        "message": f"Machine {machine.equipment_id} at your site is scheduled for return tomorrow.",
+                        "equipment_id": machine.equipment_id,
+                        "priority": "HIGH",
+                        "notification_type": "ALERT"
+                    })
+    except Exception as e:
+        print(f"Error in check_rental_expiring_tomorrow: {e}")
+    finally:
+        db.close()
+
 def start_scheduler():
-    # Run overdue check every day (or every minute for testing)
+    # Run overdue check every day at midnight
     scheduler.add_job(check_overdue_rentals, 'cron', hour=0, minute=0)
-    # Run maintenance check
+    # Run maintenance check at 1 AM
     scheduler.add_job(check_maintenance_due, 'cron', hour=1, minute=0)
+    # Run 1-day rental expiration warning at 8 AM
+    scheduler.add_job(check_rental_expiring_tomorrow, 'cron', hour=8, minute=0)
     
     # For testing/hackathon purposes, we can also add an interval job
     # scheduler.add_job(check_overdue_rentals, 'interval', minutes=5)

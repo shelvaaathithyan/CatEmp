@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 class ActionableInsight(BaseModel):
     id: str
@@ -15,10 +15,20 @@ class MachineWidgetSummary(BaseModel):
     equipment_id: str
     equipment_type: str
     model: str
+    rental_id: Optional[int] = None
 
 class WidgetData(BaseModel):
     count: int
     machines: List[MachineWidgetSummary]
+
+class FleetStatusChartData(BaseModel):
+    name: str
+    value: int
+    fill: str
+
+class RevenueChartData(BaseModel):
+    month: str
+    revenue: float
 
 class DealerDashboardResponse(BaseModel):
     total_machines: int
@@ -30,6 +40,8 @@ class DealerDashboardResponse(BaseModel):
     active_customers: int
     revenue_this_month: float
     actionable_insights: List[ActionableInsight] = []
+    fleet_status_chart: List[FleetStatusChartData] = []
+    revenue_trend_chart: List[RevenueChartData] = []
 
 class CustomerDashboardResponse(BaseModel):
     active_rentals: int
@@ -39,6 +51,8 @@ class CustomerDashboardResponse(BaseModel):
     upcoming_returns: WidgetData
     total_rental_cost_this_month: float
     actionable_insights: List[ActionableInsight] = []
+    machines_by_site_chart: List[FleetStatusChartData] = []
+    rental_costs_trend: List[Dict[str, Any]] = []
 
 class FleetManagerDashboardResponse(BaseModel):
     assigned_site_id: int

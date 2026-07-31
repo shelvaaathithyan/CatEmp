@@ -19,6 +19,12 @@ def _build_widget(machines):
         "machines": [{"equipment_id": m.equipment_id, "equipment_type": m.equipment_type, "model": m.model} for m in machines]
     }
 
+def _build_rental_widget(machine_rental_tuples):
+    return {
+        "count": len(machine_rental_tuples),
+        "machines": [{"equipment_id": m.equipment_id, "equipment_type": m.equipment_type, "model": m.model, "rental_id": r.id} for m, r in machine_rental_tuples]
+    }
+
 def get_dealer_kpis(db: Session, dealer_user_id: int):
     dealer = db.query(Dealer).filter(Dealer.user_id == dealer_user_id).first()
     if not dealer:
@@ -121,6 +127,36 @@ def get_dealer_kpis(db: Session, dealer_user_id: int):
                 "action_label": f"Notify {c.company_name}" if c else "Inspect Machine"
             })
 
+    # Calculate dealer revenue trend (last 6 months)
+    dealer_rentals = db.query(Rental).join(Machine, Rental.equipment_id == Machine.equipment_id).filter(
+        Machine.dealer_id == dealer.id,
+        Rental.check_in_date != None
+    ).all()
+
+    months_list = []
+    current_date = today
+    for i in range(6):
+        months_list.append(current_date.replace(day=1))
+        first_of_month = current_date.replace(day=1)
+        current_date = first_of_month - timedelta(days=1)
+    months_list.reverse()
+    
+    monthly_revenue = {m.strftime("%b"): 0.0 for m in months_list}
+    start_date = months_list[0]
+    
+    revenue_this_month = 0.0
+
+    for r in dealer_rentals:
+        if r.rental_cost and r.check_in_date:
+            if r.check_in_date >= start_date:
+                month_str = r.check_in_date.strftime("%b")
+                if month_str in monthly_revenue:
+                    monthly_revenue[month_str] += float(r.rental_cost)
+            if r.check_in_date.year == today.year and r.check_in_date.month == today.month:
+                revenue_this_month += float(r.rental_cost)
+                
+    revenue_trend_chart = [{"month": k, "revenue": v} for k, v in monthly_revenue.items()]
+
     return {
         "total_machines": total_machines,
         "available_machines": _build_widget(available),
@@ -129,8 +165,14 @@ def get_dealer_kpis(db: Session, dealer_user_id: int):
         "underutilized_machines": _build_widget(underutilized),
         "upcoming_returns": _build_widget(upcoming),
         "active_customers": active_customers,
-        "revenue_this_month": 45000.00,
-        "actionable_insights": actionable_insights
+        "revenue_this_month": revenue_this_month,
+        "actionable_insights": actionable_insights,
+        "fleet_status_chart": [
+            {"name": "Rented", "value": len(rented), "fill": "#f1c40f"}, # Cat Yellow
+            {"name": "Available", "value": len(available), "fill": "#bdc3c7"},
+            {"name": "Maintenance", "value": len(maintenance), "fill": "#e74c3c"}
+        ],
+        "revenue_trend_chart": revenue_trend_chart
     }
 
 def get_customer_kpis(db: Session, customer_user_id: int):
@@ -140,7 +182,7 @@ def get_customer_kpis(db: Session, customer_user_id: int):
         
     active_rentals_count = db.query(func.count(Rental.id)).filter(Rental.customer_id == customer.id, Rental.rental_status == 'ACTIVE').scalar() or 0
     
-    machines_rented = db.query(Machine).join(Rental, Rental.equipment_id == Machine.equipment_id)\
+    machines_rented = db.query(Machine, Rental).join(Rental, Rental.equipment_id == Machine.equipment_id)\
         .filter(Rental.customer_id == customer.id, Rental.rental_status == 'ACTIVE').all()
         
     active_sites = db.query(func.count(func.distinct(Rental.site_id))).filter(Rental.customer_id == customer.id, Rental.rental_status == 'ACTIVE').scalar() or 0
@@ -148,7 +190,7 @@ def get_customer_kpis(db: Session, customer_user_id: int):
     
     today = datetime.now(timezone.utc).date()
     next_week = today + timedelta(days=7)
-    upcoming = db.query(Machine).join(Rental, Rental.equipment_id == Machine.equipment_id)\
+    upcoming = db.query(Machine, Rental).join(Rental, Rental.equipment_id == Machine.equipment_id)\
         .filter(Rental.customer_id == customer.id, Rental.rental_status == 'ACTIVE', Rental.expected_return_date.between(today, next_week)).all()
 
     actionable_insights = []
@@ -217,14 +259,61 @@ def get_customer_kpis(db: Session, customer_user_id: int):
                 "action_label": "Acknowledge (Alert Operators)" if fm_user_id else None
             })
 
+    # Build site distribution chart
+    site_distribution = {}
+    active_site_rentals = db.query(Rental, Site).join(Site, Site.id == Rental.site_id).filter(Rental.customer_id == customer.id, Rental.rental_status == 'ACTIVE').all()
+    for r, s in active_site_rentals:
+        site_distribution[s.site_name] = site_distribution.get(s.site_name, 0) + 1
+        
+    colors = ["#f1c40f", "#e67e22", "#e74c3c", "#3498db", "#9b59b6", "#2ecc71"]
+    fleet_status_chart = []
+    for i, (site_name, count) in enumerate(site_distribution.items()):
+        fleet_status_chart.append({
+            "name": site_name,
+            "value": count,
+            "fill": colors[i % len(colors)]
+        })
+
+    # Calculate rental costs trend (last 6 months)
+    historical_rentals = db.query(Rental).filter(
+        Rental.customer_id == customer.id,
+        Rental.check_in_date != None
+    ).all()
+
+    months_list = []
+    current_date = today
+    for i in range(6):
+        months_list.append(current_date.replace(day=1))
+        first_of_month = current_date.replace(day=1)
+        current_date = first_of_month - timedelta(days=1)
+    months_list.reverse()
+    
+    monthly_costs = {m.strftime("%b"): 0.0 for m in months_list}
+    start_date = months_list[0]
+    
+    total_rental_cost_this_month = 0.0
+
+    for r in historical_rentals:
+        if r.rental_cost and r.check_in_date:
+            if r.check_in_date >= start_date:
+                month_str = r.check_in_date.strftime("%b")
+                if month_str in monthly_costs:
+                    monthly_costs[month_str] += float(r.rental_cost)
+            if r.check_in_date.year == today.year and r.check_in_date.month == today.month:
+                total_rental_cost_this_month += float(r.rental_cost)
+
+    rental_costs_trend = [{"month": k, "cost": v} for k, v in monthly_costs.items()]
+
     return {
         "active_rentals": active_rentals_count,
-        "total_machines_rented": _build_widget(machines_rented),
+        "total_machines_rented": _build_rental_widget(machines_rented),
         "active_sites": active_sites,
         "total_operators": total_operators,
-        "upcoming_returns": _build_widget(upcoming),
-        "total_rental_cost_this_month": 12500.00,
-        "actionable_insights": actionable_insights
+        "upcoming_returns": _build_rental_widget(upcoming),
+        "total_rental_cost_this_month": total_rental_cost_this_month,
+        "actionable_insights": actionable_insights,
+        "machines_by_site_chart": fleet_status_chart,
+        "rental_costs_trend": rental_costs_trend
     }
 
 def get_fleet_manager_kpis(db: Session, fm_user_id: int):

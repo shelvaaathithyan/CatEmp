@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { machineAPI } from '../../api';
+import { rentalAPI, machineAPI } from '../../api';
 import { toast } from 'react-toastify';
 
-const DealerMachineDetails = () => {
-  const { equipmentId } = useParams();
+const CustomerRentalDetails = () => {
+  const { rentalId } = useParams();
   const navigate = useNavigate();
   
+  const [rental, setRental] = useState(null);
   const [machine, setMachine] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,23 +16,39 @@ const DealerMachineDetails = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch machine basic info
-        const machineData = await machineAPI.getDetails(equipmentId);
-        setMachine(machineData);
+        // Fetch rental details
+        const rentalData = await rentalAPI.getDetails(rentalId);
+        setRental(rentalData);
 
-        // Fetch timeline
-        const timelineData = await machineAPI.getTimeline(equipmentId);
-        setTimeline([...timelineData.timeline].reverse() || []);
+        if (rentalData && rentalData.equipment_id) {
+            // Fetch machine basic info
+            const machineData = await machineAPI.getDetails(rentalData.equipment_id);
+            setMachine(machineData);
+
+            // Fetch timeline
+            const timelineData = await machineAPI.getTimeline(rentalData.equipment_id);
+            
+            // Filter timeline for events that happened during this rental period
+            const checkInDate = new Date(rentalData.check_in_date);
+            const endDate = rentalData.actual_return_date ? new Date(rentalData.actual_return_date) : new Date();
+            
+            let filteredTimeline = (timelineData.timeline || []).filter(event => {
+                const eventDate = new Date(event.timestamp);
+                return eventDate >= checkInDate && eventDate <= endDate;
+            });
+            
+            setTimeline([...filteredTimeline].reverse());
+        }
       } catch (error) {
-        console.error("Failed to fetch machine details:", error);
-        toast.error("Failed to load machine details.");
+        console.error("Failed to fetch rental details:", error);
+        toast.error("Failed to load rental details.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [equipmentId]);
+  }, [rentalId]);
 
   const getEventIcon = (type) => {
     switch (type) {
@@ -59,26 +76,26 @@ const DealerMachineDetails = () => {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'AVAILABLE': return '#10b981';
-      case 'RENTED': return '#3b82f6';
-      case 'MAINTENANCE': return '#ef4444';
+      case 'ACTIVE': return '#10b981';
+      case 'COMPLETED': return '#3b82f6';
+      case 'PENDING': return '#f59e0b';
       default: return '#64748b';
     }
   };
 
   if (loading) {
-    return <div style={{ color: 'var(--text)' }}>Loading machine details...</div>;
+    return <div style={{ color: 'var(--text)' }}>Loading rental details...</div>;
   }
 
-  if (!machine) {
+  if (!rental) {
     return (
       <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-secondary)' }}>
-        <h2>Machine not found</h2>
-        <button onClick={() => navigate('/dealer/machines')} style={{
+        <h2>Rental not found</h2>
+        <button onClick={() => navigate('/customer/rentals')} style={{
           padding: '0.75rem 1.5rem', background: 'var(--primary)', color: 'white',
           border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '1rem'
         }}>
-          Back to Inventory
+          Back to Rentals
         </button>
       </div>
     );
@@ -89,7 +106,7 @@ const DealerMachineDetails = () => {
       {/* Header section */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }}>
         <button 
-          onClick={() => navigate('/dealer/machines')}
+          onClick={() => navigate('/customer/rentals')}
           style={{
             background: 'var(--surface)',
             border: '1px solid var(--border)',
@@ -100,23 +117,19 @@ const DealerMachineDetails = () => {
             fontSize: '1.2rem',
             color: 'var(--text)'
           }}
-          title="Back to Inventory"
+          title="Back to Rentals"
         >
           ←
         </button>
         <div>
           <h1 style={{ fontSize: '2.5rem', marginBottom: '0.25rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--black)' }}>
-            {machine.equipment_id}
+            Rental #{rental.id}
           </h1>
           <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)', margin: 0 }}>
-            {machine.equipment_type} &bull; {machine.model}
+            {machine ? `${machine.equipment_type} • ${machine.model}` : rental.equipment_id}
           </p>
           <div style={{ marginTop: '0.5rem' }}>
-            {machine.status === 'RENTED' && machine.current_renter ? (
-              <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>Currently rented by: <strong style={{ color: 'var(--black)' }}>{machine.current_renter}</strong></span>
-            ) : (
-              <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>Currently not rented</span>
-            )}
+              <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>Equipment ID: <strong style={{ color: 'var(--black)' }}>{rental.equipment_id}</strong></span>
           </div>
         </div>
         <div style={{ marginLeft: 'auto' }}>
@@ -127,9 +140,20 @@ const DealerMachineDetails = () => {
               fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text)',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
             }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: getStatusColor(machine.status) }}></span>
-              {machine.status}
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: getStatusColor(rental.rental_status) }}></span>
+              {rental.rental_status}
             </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px', marginBottom: '2rem' }}>
+        <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ fontSize: '0.85rem', color: 'var(--medium)', margin: '0 0 5px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Start Date</h3>
+          <h2 style={{ fontSize: '1.5rem', margin: '0', color: 'var(--black)', fontWeight: '900' }}>{new Date(rental.check_in_date).toLocaleDateString()}</h2>
+        </div>
+        <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: '16px', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ fontSize: '0.85rem', color: 'var(--medium)', margin: '0 0 5px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800' }}>Expected Return</h3>
+          <h2 style={{ fontSize: '1.5rem', margin: '0', color: 'var(--black)', fontWeight: '900' }}>{new Date(rental.expected_return_date).toLocaleDateString()}</h2>
         </div>
       </div>
 
@@ -148,15 +172,15 @@ const DealerMachineDetails = () => {
           background: 'var(--surface)',
           borderBottom: '1px solid var(--border)'
         }}>
-          <h2 style={{ margin: 0, color: 'var(--text)', fontSize: '1.5rem', fontWeight: '700' }}>Chronological History</h2>
-          <p style={{ margin: '0.5rem 0 0 0', color: 'var(--text-secondary)' }}>A complete audit trail of this machine's activity.</p>
+          <h2 style={{ margin: 0, color: 'var(--text)', fontSize: '1.5rem', fontWeight: '700' }}>Rental Activity Timeline</h2>
+          <p style={{ margin: '0.5rem 0 0 0', color: 'var(--text-secondary)' }}>A complete audit trail of this machine during your rental period.</p>
         </div>
 
         <div style={{ padding: '3rem', background: 'var(--background)' }}>
           {timeline.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-secondary)' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>📭</div>
-              <p>No historical events recorded for this machine yet.</p>
+              <p>No historical events recorded during this rental period.</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', position: 'relative' }}>
@@ -240,4 +264,4 @@ const DealerMachineDetails = () => {
   );
 };
 
-export default DealerMachineDetails;
+export default CustomerRentalDetails;
