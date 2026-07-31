@@ -17,6 +17,7 @@ class SiteTransferResponse(SiteTransferBase):
     from_site_id: int
     transferred_by: int
     transfer_date: datetime
+    status: str
 
     class Config:
         from_attributes = True

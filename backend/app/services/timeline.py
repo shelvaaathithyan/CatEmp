@@ -56,9 +56,15 @@ class TimelineService:
         def get_sort_key(event):
             ts = event["timestamp"]
             import datetime
-            if isinstance(ts, datetime.date) and not isinstance(ts, datetime.datetime):
+            if not ts:
+                return datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+            if isinstance(ts, datetime.datetime):
+                if ts.tzinfo is None:
+                    return ts.replace(tzinfo=datetime.timezone.utc)
+                return ts
+            elif isinstance(ts, datetime.date):
                 return datetime.datetime.combine(ts, datetime.datetime.min.time()).replace(tzinfo=datetime.timezone.utc)
-            return ts or datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+            return ts
             
         events.sort(key=get_sort_key)
         

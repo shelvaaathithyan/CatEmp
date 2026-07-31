@@ -15,6 +15,7 @@ class SiteTransfer(Base):
 
     transfer_date = Column(TIMESTAMP, default=lambda: datetime.now(timezone.utc))
     transferred_by = Column(Integer, ForeignKey("fleet_managers.id"), nullable=False)
+    status = Column(String(50), default="PENDING")
 
     remarks = Column(Text)
 

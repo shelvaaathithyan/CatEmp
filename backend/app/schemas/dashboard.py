@@ -1,5 +1,15 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+
+class ActionableInsight(BaseModel):
+    id: str
+    type: str # "EXPIRING_RENTAL", "MAINTENANCE", "ANOMALY"
+    equipment_id: str
+    message: str
+    customer_user_id: Optional[int] = None
+    customer_name: Optional[str] = None
+    action_label: Optional[str] = None
+    target_user_id: Optional[int] = None
 
 class MachineWidgetSummary(BaseModel):
     equipment_id: str
@@ -19,6 +29,7 @@ class DealerDashboardResponse(BaseModel):
     upcoming_returns: WidgetData
     active_customers: int
     revenue_this_month: float
+    actionable_insights: List[ActionableInsight] = []
 
 class CustomerDashboardResponse(BaseModel):
     active_rentals: int
@@ -27,6 +38,7 @@ class CustomerDashboardResponse(BaseModel):
     total_operators: int
     upcoming_returns: WidgetData
     total_rental_cost_this_month: float
+    actionable_insights: List[ActionableInsight] = []
 
 class FleetManagerDashboardResponse(BaseModel):
     assigned_site_id: int
@@ -36,3 +48,4 @@ class FleetManagerDashboardResponse(BaseModel):
     today_checkouts: int
     pending_transfers: int
     maintenance_alerts: int
+    actionable_insights: List[ActionableInsight] = []

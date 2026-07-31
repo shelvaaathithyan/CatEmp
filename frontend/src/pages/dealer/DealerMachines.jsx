@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
 import { machineAPI } from '../../api';
 
 const DealerMachines = () => {
+  const navigate = useNavigate();
   const [machines, setMachines] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +55,11 @@ const DealerMachines = () => {
         {loading ? (
           <div style={{ color: 'var(--text)' }}>Loading machines...</div>
         ) : (
-          <Table columns={columns} data={machines} />
+          <Table 
+            columns={columns} 
+            data={machines} 
+            onRowClick={(machine) => navigate(`/dealer/machines/${machine.equipment_id}`)}
+          />
         )}
       </Card>
     </div>

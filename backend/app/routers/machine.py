@@ -23,6 +23,15 @@ def get_machines(
     """List all machines with optional filters."""
     return machine_repo.get_all(db, skip=skip, limit=limit, dealer_id=dealer_id, status=status)
 
+@router.get("/{equipment_id}", response_model=MachineResponse)
+def get_machine(equipment_id: str, db: Session = Depends(get_db), current_user=Depends(allow_view_timeline)):
+    """Get details of a specific machine."""
+    from fastapi import HTTPException
+    machine = machine_repo.get_by_equipment_id(db, equipment_id)
+    if not machine:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    return machine
+
 @router.get("/{equipment_id}/timeline")
 def get_machine_timeline(equipment_id: str, db: Session = Depends(get_db), current_user=Depends(allow_view_timeline)):
     """Retrieves the complete historical timeline of a machine."""

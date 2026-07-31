@@ -54,7 +54,7 @@ class RentalService:
 
     @staticmethod
     def process_checkin_checkout(db: Session, action_in: CheckinCheckoutCreate) -> CheckinCheckout:
-        """Records a check-in or check-out event."""
+        """Records a check-in or check-out event and updates transfer states."""
         rental = rental_repo.get(db, action_in.rental_id)
         if not rental:
             raise HTTPException(status_code=404, detail="Rental not found.")
@@ -64,16 +64,28 @@ class RentalService:
         
         machine = machine_repo.get_by_equipment_id(db, rental.equipment_id)
         
-        if action_in.action.upper() == "CHECKIN":
-            rental.rental_status = "COMPLETED"
-            rental.actual_return_date = datetime.now(timezone.utc).date()
-            if machine:
-                machine.status = "AVAILABLE"
+        # Get the latest site transfer for this rental
+        latest_transfer = db.query(SiteTransfer)\
+            .filter(SiteTransfer.rental_id == rental.id)\
+            .order_by(SiteTransfer.transfer_date.desc())\
+            .first()
+
+        action = action_in.action.upper()
+        if action == "CHECKOUT":
+            # If leaving site and there's a pending transfer, it is now in transit
+            if latest_transfer and latest_transfer.status == "PENDING":
+                latest_transfer.status = "IN_TRANSIT"
                 
-        elif action_in.action.upper() == "CHECKOUT":
-            rental.rental_status = "ACTIVE"
-            if machine:
-                machine.status = "ACTIVE"
+            # If this is the initial checkout from the dealer, mark rental as ACTIVE
+            if rental.rental_status == "PENDING":
+                rental.rental_status = "ACTIVE"
+                if machine:
+                    machine.status = "RENTED"
+                    
+        elif action == "CHECKIN":
+            # If arriving at a site, mark the transfer as delivered
+            if latest_transfer and latest_transfer.status in ["PENDING", "IN_TRANSIT"]:
+                latest_transfer.status = "DELIVERED"
                 
         db.commit()
         db.refresh(record)

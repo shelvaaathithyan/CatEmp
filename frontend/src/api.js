@@ -176,6 +176,10 @@ export const notificationAPI = {
   markAsRead: async (id) => {
     const response = await apiClient.put(`/notifications/${id}/read`);
     return response.data;
+  },
+  sendManual: async (data) => {
+    const response = await apiClient.post('/notifications/send', data);
+    return response.data;
   }
 };
 

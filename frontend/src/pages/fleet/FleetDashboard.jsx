@@ -44,6 +44,55 @@ const FleetDashboard = () => {
         <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Site: {data.assigned_site_name}</p>
       </div>
 
+      {/* Actionable Insights */}
+      {data.actionable_insights && data.actionable_insights.length > 0 && (
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontFamily: 'var(--font-heading)', color: 'var(--black)' }}>Site Insights</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {data.actionable_insights.map(insight => (
+              <div key={insight.id} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '20px', backgroundColor: 'var(--surface)', borderRadius: '12px',
+                borderLeft: `4px solid ${insight.type === 'OVERUTILIZATION' ? 'var(--error)' : 'var(--warning)'}`,
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontWeight: '700', color: 'var(--text)' }}>{insight.equipment_id}</span>
+                    <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'var(--background)', color: 'var(--text-secondary)' }}>
+                      {insight.type.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <p style={{ color: 'var(--text-secondary)', margin: 0 }}>{insight.message}</p>
+                </div>
+                {insight.action_label && (
+                  <button 
+                    onClick={() => {
+                      if (insight.action_label === "Schedule Site Transfer") {
+                        alert(`Transfer flow initiated for ${insight.equipment_id}.`);
+                        // In a real app, this would route to the transfer page
+                        // window.location.href = '/fleet/transfers';
+                      } else {
+                        alert(`Command sent: ${insight.action_label} for ${insight.equipment_id}`);
+                      }
+                    }}
+                    style={{
+                      padding: '10px 20px', backgroundColor: 'var(--black)', color: 'white',
+                      border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'var(--medium)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'var(--black)'}
+                  >
+                    {insight.action_label}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
         <Card title="Active Machines on Site">
           <h2 style={{ fontSize: '2rem', margin: '5px 0', color: 'var(--success)' }}>{data.active_machines.count}</h2>

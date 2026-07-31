@@ -23,6 +23,7 @@ import FleetPredictions from './pages/fleet/FleetPredictions';
 import FleetNotifications from './pages/fleet/FleetNotifications';
 
 import DealerMachines from './pages/dealer/DealerMachines';
+import DealerMachineDetails from './pages/dealer/DealerMachineDetails';
 import DealerRentals from './pages/dealer/DealerRentals';
 import DealerMaintenance from './pages/dealer/DealerMaintenance';
 import DealerNotifications from './pages/dealer/DealerNotifications';
@@ -75,6 +76,7 @@ function App() {
             <Route path="/dealer" element={<ProtectedRoute allowedRoles={['Dealer', 'CatAdmin']}><DealerLayout /></ProtectedRoute>}>
               <Route path="dashboard" element={<DealerDashboard />} />
               <Route path="machines" element={<DealerMachines />} />
+              <Route path="machines/:equipmentId" element={<DealerMachineDetails />} />
               <Route path="rentals" element={<DealerRentals />} />
               <Route path="maintenance" element={<DealerMaintenance />} />
               <Route path="predictions" element={<DealerPredictions />} />

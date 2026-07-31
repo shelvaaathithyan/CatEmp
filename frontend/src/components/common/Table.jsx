@@ -1,6 +1,6 @@
 import styles from './Table.module.css';
 
-const Table = ({ columns, data }) => {
+const Table = ({ columns, data, onRowClick }) => {
   return (
     <div className={styles.tableContainer}>
       <table className={styles.table}>
@@ -13,7 +13,12 @@ const Table = ({ columns, data }) => {
         </thead>
         <tbody>
           {data.map((row, rowIdx) => (
-            <tr key={rowIdx} className={styles.tr}>
+            <tr 
+              key={rowIdx} 
+              className={styles.tr}
+              onClick={() => onRowClick && onRowClick(row)}
+              style={onRowClick ? { cursor: 'pointer' } : {}}
+            >
               {columns.map((col, colIdx) => (
                 <td key={colIdx} className={styles.td}>
                   {col.cell ? col.cell(row) : row[col.accessor]}

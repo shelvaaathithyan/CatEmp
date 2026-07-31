@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
-import { dashboardAPI } from '../../api';
+import { dashboardAPI, notificationAPI } from '../../api';
 
 const DealerDashboard = () => {
   const [data, setData] = useState(null);
@@ -37,6 +37,30 @@ const DealerDashboard = () => {
     );
   };
 
+  const handleAction = async (insight) => {
+    if (!insight.action_label) return;
+    
+    // If it's an internal action, just alert and return
+    if (!insight.action_label.startsWith("Notify")) {
+      alert(`${insight.action_label} for ${insight.equipment_id} has been logged.`);
+      return;
+    }
+
+    try {
+      await notificationAPI.sendManual({
+        recipient_id: insight.customer_user_id,
+        title: insight.type === 'MAINTENANCE' ? 'Maintenance Scheduled' : 'Machine Alert',
+        message: insight.message,
+        priority: 'HIGH',
+        notification_type: 'ALERT'
+      });
+      alert(`Notification successfully sent to ${insight.customer_name}!`);
+    } catch (error) {
+      console.error("Error sending notification", error);
+      alert("Failed to send notification.");
+    }
+  };
+
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
@@ -44,13 +68,61 @@ const DealerDashboard = () => {
         <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontFamily: 'var(--font-body)' }}>Overview of fleet operations and revenue.</p>
       </div>
 
+      {data.actionable_insights && data.actionable_insights.length > 0 && (
+        <div style={{ marginBottom: '2.5rem' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text)' }}>Actionable Insights</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {data.actionable_insights.map(insight => (
+              <div key={insight.id} style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderLeft: `4px solid ${insight.type === 'MAINTENANCE' ? 'var(--warning)' : insight.type === 'ANOMALY' ? 'var(--error)' : 'var(--primary)'}`,
+                padding: '1.5rem',
+                borderRadius: '12px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                    <span style={{ fontWeight: '700', color: 'var(--text)' }}>{insight.equipment_id}</span>
+                    <span style={{ fontSize: '0.8rem', padding: '3px 8px', borderRadius: '12px', background: 'var(--background)', color: 'var(--text-secondary)' }}>
+                      {insight.type.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{insight.message}</p>
+                </div>
+                {insight.action_label && (
+                  <button 
+                    onClick={() => handleAction(insight)}
+                    style={{
+                      background: 'var(--black)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.6rem 1.2rem',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s'
+                    }}
+                  >
+                    {insight.action_label}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
         <Card title="Revenue This Month">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--primary)' }}>${data.revenue_this_month.toLocaleString()}</h2>
           <p style={{ color: 'var(--text-secondary)' }}>From {data.active_customers} active customers</p>
         </Card>
 
-        <Card title="Total Fleet Size">
+        <Card title="Total Inventory">
           <h2 style={{ fontSize: '2.5rem', margin: '10px 0', color: 'var(--text)' }}>{data.total_machines}</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Owned machines</p>
         </Card>

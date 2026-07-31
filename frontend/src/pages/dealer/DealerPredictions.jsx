@@ -193,7 +193,7 @@ const DealerPredictions = () => {
 
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem' }}>
         <button style={tabStyle('demand')} onClick={() => setActiveTab('demand')}>Demand Forecast</button>
-        <button style={tabStyle('maintenance')} onClick={() => setActiveTab('maintenance')}>Maintenance</button>
+        <button style={tabStyle('maintenance')} onClick={() => setActiveTab('maintenance')}>Predictive Maintenance</button>
         <button style={tabStyle('anomaly')} onClick={() => setActiveTab('anomaly')}>Anomaly Detection</button>
       </div>
 
@@ -212,7 +212,7 @@ const DealerPredictions = () => {
           )}
 
           {activeTab === 'maintenance' && (
-            <Card title="Maintenance Forecasts">
+            <Card title="AI Predictive Maintenance">
               {maintenance.length > 0 ? (
                 <Table columns={maintenanceColumns} data={maintenance} />
               ) : (
