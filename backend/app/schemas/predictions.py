@@ -66,6 +66,7 @@ class AnomalyPredictionBase(BaseModel):
     anomaly_status: str
     anomaly_score: Optional[Decimal] = None
     severity: Optional[str] = None
+    insight_message: Optional[str] = None
     model: Optional[str] = None
     equipment_type: Optional[str] = None
 

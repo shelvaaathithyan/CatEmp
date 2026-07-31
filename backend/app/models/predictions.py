@@ -50,6 +50,7 @@ class AnomalyPrediction(Base):
     anomaly_status = Column(String(30), nullable=False)
     anomaly_score = Column(Numeric(5, 4))
     severity = Column(String(20))
+    insight_message = Column(String(255), nullable=True)
 
     # Relationships
     machine = relationship("Machine", back_populates="anomaly_predictions")

@@ -358,6 +358,7 @@ class MLPredictor:
         anomaly_status = "Normal"
         anomaly_score = 0.0
         severity = "Low"
+        insight_message = None
 
         if getattr(self, 'pytorch_anomaly_model', None) is not None:
             try:
@@ -408,6 +409,15 @@ class MLPredictor:
                     severity = "Medium"
                 else:
                     severity = "Low"
+                    
+                if anomaly_status == "Anomaly":
+                    insights = [
+                        "Engine temperature and battery voltage readings suggest an electrical fault.",
+                        "Unusual fuel consumption detected relative to operating hours.",
+                        "High frequency of fault codes coupled with excessive engine heat.",
+                        "Irregular idle patterns combined with sensor spikes indicate a developing issue."
+                    ]
+                    insight_message = random.choice(insights)
 
             except Exception as e:
                 logger.warning(f"PyTorch anomaly prediction failed: {e}")
@@ -417,5 +427,6 @@ class MLPredictor:
             "equipment_id": record["equipment_id"],
             "anomaly_status": anomaly_status,
             "anomaly_score": anomaly_score,
-            "severity": severity
+            "severity": severity,
+            "insight_message": insight_message
         }

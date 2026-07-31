@@ -118,11 +118,12 @@ def get_dealer_kpis(db: Session, dealer_user_id: int):
     for ap, m, r, c in anomaly_preds:
         if ap.equipment_id not in seen_anom:
             seen_anom.add(ap.equipment_id)
+            msg = ap.insight_message if getattr(ap, 'insight_message', None) else "System detected abnormal behavior."
             actionable_insights.append({
                 "id": f"ANOM_{ap.equipment_id}_{ap.id}",
                 "type": "ANOMALY",
                 "equipment_id": ap.equipment_id,
-                "message": f"Anomaly detected (Score: {float(ap.anomaly_score):.2f}). Something is off.",
+                "message": f"Anomaly detected (Score: {float(ap.anomaly_score):.2f}). {msg}",
                 "customer_user_id": c.user_id if c else None,
                 "customer_name": c.company_name if c else None,
                 "action_label": f"Notify {c.company_name}" if c else "Inspect Machine"
