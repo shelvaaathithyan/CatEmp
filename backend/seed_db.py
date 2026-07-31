@@ -93,7 +93,13 @@ def seed_database():
             Machine(equipment_id="WL-001", dealer_id=dealers[1].id, equipment_type="Wheel Loader", model="950 GC", status="RENTED"),
             Machine(equipment_id="BD-001", dealer_id=dealers[0].id, equipment_type="Bulldozer", model="D6", status="MAINTENANCE"),
             Machine(equipment_id="NEW-001", dealer_id=dealers[0].id, equipment_type="Excavator", model="320 GC", status="RENTED"),
-            Machine(equipment_id="NEW-002", dealer_id=dealers[1].id, equipment_type="Excavator", model="320 GC", status="RENTED")
+            Machine(equipment_id="NEW-002", dealer_id=dealers[1].id, equipment_type="Excavator", model="320 GC", status="RENTED"),
+            Machine(equipment_id="EX-003", dealer_id=dealers[0].id, equipment_type="Excavator", model="320 GC", status="RENTED"),
+            Machine(equipment_id="EX-004", dealer_id=dealers[1].id, equipment_type="Excavator", model="336", status="RENTED"),
+            Machine(equipment_id="WL-002", dealer_id=dealers[1].id, equipment_type="Wheel Loader", model="950 GC", status="MAINTENANCE"),
+            Machine(equipment_id="BD-002", dealer_id=dealers[0].id, equipment_type="Bulldozer", model="D6", status="RENTED"),
+            Machine(equipment_id="AT-001", dealer_id=dealers[0].id, equipment_type="Articulated Truck", model="745", status="RENTED"),
+            Machine(equipment_id="MG-001", dealer_id=dealers[1].id, equipment_type="Motor Grader", model="140 GC", status="RENTED")
         ]
         db.add_all(machines)
         db.commit()
@@ -172,6 +178,80 @@ def seed_database():
         )
         db.add(rental_e)
 
+        # ----------------------------------------------------
+        # --- NEW SCENARIOS FOR EXTENDED TELEMETRY MACHINES ---
+        # ----------------------------------------------------
+        # EX-003 (customerA / fleetA / dealer1)
+        rental_f = Rental(
+            equipment_id="EX-003", customer_id=customers[2].id, site_id=sites[3].id, fleet_manager_id=fleet_mgrs[2].id,
+            check_in_date=today - timedelta(days=8), expected_return_date=today + timedelta(days=5), rental_status="ACTIVE"
+        )
+        db.add(rental_f)
+        db.commit()
+        db.refresh(rental_f)
+        db.add(CheckinCheckout(rental_id=rental_f.id, performed_by=fleet_mgrs[2].id, action="CHECKOUT", timestamp=now - timedelta(days=8)))
+        # Usage for EX-003
+        for i in range(4):
+            db.add(EquipmentUsage(rental_id=rental_f.id, equipment_id="EX-003", site_id=sites[3].id, usage_date=today - timedelta(days=i+1), engine_hours_per_day=9.5, idle_hours_per_day=1.5, rental_days=1, last_operator_id="OP-003"))
+
+        # EX-004 (customerB / fleetB / dealer2)
+        rental_g = Rental(
+            equipment_id="EX-004", customer_id=customers[3].id, site_id=sites[4].id, fleet_manager_id=fleet_mgrs[3].id,
+            check_in_date=today - timedelta(days=12), expected_return_date=today + timedelta(days=2), rental_status="ACTIVE"
+        )
+        db.add(rental_g)
+        db.commit()
+        db.refresh(rental_g)
+        db.add(CheckinCheckout(rental_id=rental_g.id, performed_by=fleet_mgrs[3].id, action="CHECKOUT", timestamp=now - timedelta(days=12)))
+        db.add(SiteTransfer(rental_id=rental_g.id, equipment_id="EX-004", from_site_id=sites[2].id, to_site_id=sites[4].id, transferred_by=fleet_mgrs[3].id, transfer_date=now - timedelta(days=5)))
+        # Usage for EX-004
+        for i in range(4):
+            db.add(EquipmentUsage(rental_id=rental_g.id, equipment_id="EX-004", site_id=sites[4].id, usage_date=today - timedelta(days=i+1), engine_hours_per_day=8.0, idle_hours_per_day=2.5, rental_days=1, last_operator_id="OP-004"))
+
+        # WL-002 (customer 1 / site 2 / dealer 2) - Maintenance
+        rental_h = Rental(
+            equipment_id="WL-002", customer_id=customers[0].id, site_id=sites[1].id, fleet_manager_id=fleet_mgrs[1].id,
+            check_in_date=today - timedelta(days=30), expected_return_date=today + timedelta(days=15), rental_status="ACTIVE"
+        )
+        db.add(rental_h)
+        db.commit()
+        db.refresh(rental_h)
+        db.add(MaintenanceHistory(equipment_id="WL-002", service_date=today - timedelta(days=1), service_type="Hydraulics", remarks="Major hydraulic fluid leak"))
+        # Usage for WL-002
+        for i in range(4):
+            db.add(EquipmentUsage(rental_id=rental_h.id, equipment_id="WL-002", site_id=sites[1].id, usage_date=today - timedelta(days=i+1), engine_hours_per_day=2.0, idle_hours_per_day=6.0, rental_days=1, last_operator_id="OP-001"))
+
+        # BD-002 (customerA / fleetA / dealer 1)
+        rental_i = Rental(
+            equipment_id="BD-002", customer_id=customers[2].id, site_id=sites[3].id, fleet_manager_id=fleet_mgrs[2].id,
+            check_in_date=today - timedelta(days=15), expected_return_date=today + timedelta(days=10), rental_status="ACTIVE"
+        )
+        db.add(rental_i)
+        db.commit()
+        db.refresh(rental_i)
+        db.add(SiteTransfer(rental_id=rental_i.id, equipment_id="BD-002", from_site_id=sites[0].id, to_site_id=sites[3].id, transferred_by=fleet_mgrs[2].id, transfer_date=now - timedelta(days=1)))
+        
+        # AT-001 (customer 0 / fleet 0 / dealer 1)
+        rental_j = Rental(
+            equipment_id="AT-001", customer_id=customers[0].id, site_id=sites[0].id, fleet_manager_id=fleet_mgrs[0].id,
+            check_in_date=today - timedelta(days=6), expected_return_date=today + timedelta(days=20), rental_status="ACTIVE"
+        )
+        db.add(rental_j)
+        db.commit()
+        db.refresh(rental_j)
+        db.add(CheckinCheckout(rental_id=rental_j.id, performed_by=fleet_mgrs[0].id, action="CHECKOUT", timestamp=now - timedelta(days=6)))
+
+        # MG-001 (customer B / fleet B / dealer 2)
+        rental_k = Rental(
+            equipment_id="MG-001", customer_id=customers[3].id, site_id=sites[4].id, fleet_manager_id=fleet_mgrs[3].id,
+            check_in_date=today - timedelta(days=3), expected_return_date=today + timedelta(days=8), rental_status="ACTIVE"
+        )
+        db.add(rental_k)
+        db.commit()
+        db.refresh(rental_k)
+        db.add(SiteTransfer(rental_id=rental_k.id, equipment_id="MG-001", from_site_id=sites[1].id, to_site_id=sites[4].id, transferred_by=fleet_mgrs[3].id, transfer_date=now + timedelta(days=1)))
+
+
         db.commit()
         for r in [rental_d, rental_e]: db.refresh(r)
         
@@ -213,8 +293,9 @@ def seed_database():
             MaintenancePrediction(equipment_id="EX-002", prediction_timestamp=now, maintenance_probability=0.85, predicted_service_date=today + timedelta(days=5), confidence=0.92),
             MaintenancePrediction(equipment_id="WL-001", prediction_timestamp=now, maintenance_probability=0.35, predicted_service_date=today + timedelta(days=30), confidence=0.78),
             MaintenancePrediction(equipment_id="BD-001", prediction_timestamp=now, maintenance_probability=0.72, predicted_service_date=today + timedelta(days=8), confidence=0.90),
-            MaintenancePrediction(equipment_id="NEW-001", prediction_timestamp=now, maintenance_probability=0.10, predicted_service_date=today + timedelta(days=60), confidence=0.95),
             MaintenancePrediction(equipment_id="NEW-002", prediction_timestamp=now, maintenance_probability=0.45, predicted_service_date=today + timedelta(days=20), confidence=0.82),
+            MaintenancePrediction(equipment_id="WL-002", prediction_timestamp=now, maintenance_probability=0.91, predicted_service_date=today + timedelta(days=2), confidence=0.96),
+            MaintenancePrediction(equipment_id="EX-003", prediction_timestamp=now, maintenance_probability=0.25, predicted_service_date=today + timedelta(days=40), confidence=0.80),
         ]
         db.add_all(maint_preds)
         

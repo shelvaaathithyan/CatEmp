@@ -1,13 +1,9 @@
-import random
-from datetime import datetime, timezone
-import uuid
-from ml_predictor import MLPredictor
-from typing import List, Dict
+import sys
 
-class TelemetryGenerator:
-    def __init__(self):
-        self.predictor = MLPredictor()
-        # Initialize realistic state for some machines dynamically
+with open('e:/Repositories/CatEmp/CatEmp/telemetry_service/telemetry_generator.py', 'r') as f:
+    lines = f.readlines()
+
+new_content = """        # Initialize realistic state for some machines dynamically
         base_configs = [
             {"equipment_id": "EX-001", "equipment_type": "Excavator", "model": "320 GC", "dealer_id": 1, "site_id": 1, "machine_status": "Running"},
             {"equipment_id": "EX-002", "equipment_type": "Excavator", "model": "336", "dealer_id": 1, "site_id": 2, "machine_status": "Idle"},
@@ -47,57 +43,9 @@ class TelemetryGenerator:
             cfg["avg_engine_hours"] = round(cfg["engine_hours_per_day"] * random.uniform(0.8, 1.2), 1)
             cfg["avg_idle_hours"] = round(cfg["idle_hours_per_day"] * random.uniform(0.8, 1.2), 1)
             self.machines.append(cfg)
+"""
 
-    def _evolve_running(self, machine: dict):
-        machine["engine_hours_per_day"] += random.uniform(0.05, 0.1)
-        machine["total_operating_hours"] += random.uniform(0.05, 0.1)
-        machine["fuel_level"] = max(0.0, machine["fuel_level"] - random.uniform(0.5, 2.0))
-        machine["engine_temperature"] = min(105.0, max(75.0, machine["engine_temperature"] + random.uniform(-1.0, 3.0)))
-        machine["battery_voltage"] = round(random.uniform(13.5, 14.2), 1)
-        machine["gps_latitude"] += random.uniform(-0.00005, 0.00005)
-        machine["gps_longitude"] += random.uniform(-0.00005, 0.00005)
-
-    def _evolve_idle(self, machine: dict):
-        machine["idle_hours_per_day"] += random.uniform(0.05, 0.1)
-        machine["fuel_level"] = max(0.0, machine["fuel_level"] - random.uniform(0.05, 0.2))
-        machine["engine_temperature"] = max(60.0, machine["engine_temperature"] - random.uniform(1.0, 3.0))
-        machine["battery_voltage"] = round(random.uniform(12.0, 12.6), 1)
-
-    def generate_telemetry(self) -> List[Dict]:
-        records = []
-        for machine in self.machines:
-            # Evolve states based on rules
-            if machine["machine_status"] == "Running":
-                self._evolve_running(machine)
-                if random.random() < 0.1:  # 10% chance to become Idle
-                    machine["machine_status"] = "Idle"
-            else:
-                self._evolve_idle(machine)
-                if random.random() < 0.3:  # 30% chance to start Running
-                    machine["machine_status"] = "Running"
-            
-            # Calculate utilization rate
-            total_hours = machine["engine_hours_per_day"] + machine["idle_hours_per_day"]
-            util_rate = machine["engine_hours_per_day"] / total_hours if total_hours > 0 else 0.0
-            machine["utilization_rate"] = round(util_rate, 4)
-
-            # Assign timestamp and dynamic month
-            machine["timestamp"] = datetime.now(timezone.utc).isoformat()
-            machine["month"] = datetime.now().month
-
-            records.append(machine.copy())
-            
-        return records
-
-    def build_demand_payload(self, record: dict) -> dict:
-        return self.predictor.predict_demand(record)
-
-    def build_maintenance_payload(self, record: dict) -> dict:
-        return self.predictor.predict_maintenance(record)
-
-    def build_utilization_payload(self, record: dict) -> dict:
-        return self.predictor.predict_utilization(record)
-
-    def build_anomaly_payload(self, record: dict) -> dict:
-        return self.predictor.predict_anomaly(record)
-
+with open('e:/Repositories/CatEmp/CatEmp/telemetry_service/telemetry_generator.py', 'w') as f:
+    f.writelines(lines[:9])
+    f.write(new_content)
+    f.writelines(lines[291:])
