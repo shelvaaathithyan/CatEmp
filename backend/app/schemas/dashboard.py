@@ -16,6 +16,7 @@ class MachineWidgetSummary(BaseModel):
     equipment_type: str
     model: str
     rental_id: Optional[int] = None
+    expected_return_date: Optional[str] = None
 
 class WidgetData(BaseModel):
     count: int
@@ -63,3 +64,6 @@ class FleetManagerDashboardResponse(BaseModel):
     pending_transfers: int
     maintenance_alerts: int
     actionable_insights: List[ActionableInsight] = []
+    machine_status_chart: List[FleetStatusChartData] = []
+    usage_trend_chart: List[Dict[str, Any]] = []
+    prediction_insights: List[Dict[str, Any]] = []

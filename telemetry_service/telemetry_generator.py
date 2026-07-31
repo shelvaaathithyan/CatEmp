@@ -2,6 +2,7 @@ import random
 from datetime import datetime, timezone
 import uuid
 from ml_predictor import MLPredictor
+from typing import List, Dict
 
 class TelemetryGenerator:
     def __init__(self):
@@ -137,7 +138,7 @@ class TelemetryGenerator:
         machine["engine_temperature"] = max(60.0, machine["engine_temperature"] - random.uniform(1.0, 3.0))
         machine["battery_voltage"] = round(random.uniform(12.0, 12.6), 1)
 
-    def generate_telemetry(self) -> list[dict]:
+    def generate_telemetry(self) -> List[Dict]:
         records = []
         for machine in self.machines:
             # Evolve states based on rules

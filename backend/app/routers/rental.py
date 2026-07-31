@@ -42,7 +42,7 @@ def get_rentals(
         fm = db.query(FleetManager).filter(FleetManager.user_id == current_user.id).first()
         if not fm:
             return []
-        query = query.filter(rental_repo.model.fleet_manager_id == fm.id)
+        query = query.filter(rental_repo.model.site_id == fm.site_id)
     elif current_user.role == "Dealer":
         dealer = db.query(Dealer).filter(Dealer.user_id == current_user.id).first()
         if not dealer:
@@ -79,7 +79,7 @@ def get_rental(rental_id: int, db: Session = Depends(get_db), current_user=Depen
             raise HTTPException(status_code=403, detail="Not authorized")
     elif current_user.role == "Fleet Manager":
         fm = db.query(FleetManager).filter(FleetManager.user_id == current_user.id).first()
-        if not fm or rental.fleet_manager_id != fm.id:
+        if not fm or rental.site_id != fm.site_id:
             raise HTTPException(status_code=403, detail="Not authorized")
     elif current_user.role == "Dealer":
         dealer = db.query(Dealer).filter(Dealer.user_id == current_user.id).first()

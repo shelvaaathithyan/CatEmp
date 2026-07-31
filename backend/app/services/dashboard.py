@@ -11,7 +11,8 @@ from app.models.site import Site
 from app.models.operator import Operator
 from app.models.checkin_checkout import CheckinCheckout
 from app.models.equipment_usage import EquipmentUsage
-from app.models.predictions import UtilizationPrediction, MaintenancePrediction, AnomalyPrediction
+from app.models.predictions import UtilizationPrediction, MaintenancePrediction, AnomalyPrediction, DemandPrediction
+from app.models.site_transfer import SiteTransfer
 
 def _build_widget(machines):
     return {
@@ -22,7 +23,7 @@ def _build_widget(machines):
 def _build_rental_widget(machine_rental_tuples):
     return {
         "count": len(machine_rental_tuples),
-        "machines": [{"equipment_id": m.equipment_id, "equipment_type": m.equipment_type, "model": m.model, "rental_id": r.id} for m, r in machine_rental_tuples]
+        "machines": [{"equipment_id": m.equipment_id, "equipment_type": m.equipment_type, "model": m.model, "rental_id": r.id, "expected_return_date": r.expected_return_date.isoformat() if r.expected_return_date else None} for m, r in machine_rental_tuples]
     }
 
 def get_dealer_kpis(db: Session, dealer_user_id: int):
@@ -323,8 +324,11 @@ def get_fleet_manager_kpis(db: Session, fm_user_id: int):
         
     site = db.query(Site).filter(Site.id == fm.site_id).first()
     
-    active_machines = db.query(Machine).join(Rental, Rental.equipment_id == Machine.equipment_id)\
+    active_machines_raw = db.query(Machine, Rental).join(Rental, Rental.equipment_id == Machine.equipment_id)\
         .filter(Rental.site_id == site.id, Rental.rental_status == 'ACTIVE').all()
+    
+    # We need to build the rental widget so they can be clicked
+    active_machines = active_machines_raw
     
     today = datetime.now(timezone.utc).date()
     day_start = datetime.combine(today, datetime.min.time())
@@ -369,13 +373,77 @@ def get_fleet_manager_kpis(db: Session, fm_user_id: int):
                 "action_label": "Schedule Site Transfer"
             })
 
+    # 3. Pending Maintenance (Dealer initiated)
+    maint_preds = db.query(MaintenancePrediction, Rental)\
+        .join(Rental, Rental.equipment_id == MaintenancePrediction.equipment_id)\
+        .filter(Rental.site_id == site.id, Rental.rental_status == 'ACTIVE', MaintenancePrediction.predicted_service_date <= today + timedelta(days=5))\
+        .order_by(MaintenancePrediction.prediction_timestamp.desc()).all()
+        
+    maintenance_alerts = 0
+    seen_maint = set()
+    for mp, r in maint_preds:
+        if mp.equipment_id not in seen_maint:
+            seen_maint.add(mp.equipment_id)
+            maintenance_alerts += 1
+            actionable_insights.append({
+                "id": f"FM_MAINT_{mp.equipment_id}_{mp.id}",
+                "type": "MAINTENANCE",
+                "equipment_id": mp.equipment_id,
+                "message": f"Maintenance scheduled by dealer for {mp.predicted_service_date}. Plan downtime.",
+                "action_label": "Acknowledge"
+            })
+            
+    # Calculate Pending Transfers
+    pending_transfers = db.query(func.count(SiteTransfer.id)).filter(SiteTransfer.to_site_id == site.id, SiteTransfer.transfer_date >= today).scalar() or 0
+
+    # Calculate 7-Day Usage Trend
+    usage_trend_chart = []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        daily_usage = db.query(func.sum(EquipmentUsage.engine_hours_per_day))\
+            .filter(EquipmentUsage.site_id == site.id, EquipmentUsage.usage_date == d).scalar() or 0
+        usage_trend_chart.append({"date": d.strftime("%b %d"), "hours": float(daily_usage)})
+
+    # Calculate Machine Status Chart based on Utilization Prediction or hardcode a fallback
+    status_counts = {"Running": 0, "Idle": 0, "Maintenance": 0}
+    for m, r in active_machines_raw:
+        if m.status == 'MAINTENANCE' or m.equipment_id in seen_maint:
+            status_counts["Maintenance"] += 1
+        elif m.equipment_id in seen_idle:
+            status_counts["Idle"] += 1
+        else:
+            status_counts["Running"] += 1
+            
+    machine_status_chart = [
+        {"name": "Running", "value": status_counts["Running"], "fill": "#2ecc71"},
+        {"name": "Idle", "value": status_counts["Idle"], "fill": "#f1c40f"},
+        {"name": "Maintenance", "value": status_counts["Maintenance"], "fill": "#e74c3c"}
+    ]
+    
+    # Top Priority Predictions
+    demand_preds = db.query(DemandPrediction)\
+        .filter(DemandPrediction.site_id == site.id)\
+        .order_by(DemandPrediction.prediction_timestamp.desc()).limit(3).all()
+        
+    prediction_insights = []
+    for dp in demand_preds:
+        prediction_insights.append({
+            "type": "DEMAND",
+            "equipment_type": dp.equipment_type,
+            "expected_demand": dp.expected_demand,
+            "period": dp.prediction_period
+        })
+
     return {
         "assigned_site_id": site.id,
         "assigned_site_name": site.site_name,
-        "active_machines": _build_widget(active_machines),
+        "active_machines": _build_rental_widget(active_machines),
         "today_checkins": today_checkins,
         "today_checkouts": today_checkouts,
-        "pending_transfers": 0,
-        "maintenance_alerts": 0,
-        "actionable_insights": actionable_insights
+        "pending_transfers": pending_transfers,
+        "maintenance_alerts": maintenance_alerts,
+        "actionable_insights": actionable_insights,
+        "machine_status_chart": machine_status_chart,
+        "usage_trend_chart": usage_trend_chart,
+        "prediction_insights": prediction_insights
     }

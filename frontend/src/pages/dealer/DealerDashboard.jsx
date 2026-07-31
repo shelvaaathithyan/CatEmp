@@ -97,7 +97,7 @@ const DealerDashboard = () => {
             display: 'flex',
             flexDirection: 'column'
           }}>
-            <h2 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)', color: 'var(--black)' }}>Urgent Action Required</h2>
+            <h2 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)', color: 'var(--black)' }}>Insights</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', overflowY: 'auto', maxHeight: '350px' }}>
               {data.actionable_insights.map(insight => (
                 <div key={insight.id} style={{
@@ -135,7 +135,7 @@ const DealerDashboard = () => {
           </div>
         ) : (
           <div style={{ background: 'var(--surface)', borderRadius: '16px', padding: '2rem', boxShadow: 'var(--shadow-sm)', borderTop: '4px solid var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontWeight: '600' }}>No Urgent Actions Required.</p>
+             <p style={{ color: 'var(--medium)', fontSize: '1.1rem', fontWeight: '600' }}>No Insights Available.</p>
           </div>
         )}
 

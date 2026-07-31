@@ -31,7 +31,6 @@ import DealerPredictions from './pages/dealer/DealerPredictions';
 
 import CustomerRentals from './pages/customer/CustomerRentals';
 import CustomerRentalDetails from './pages/customer/CustomerRentalDetails';
-import CustomerMachineDetails from './pages/customer/CustomerMachineDetails';
 import CustomerOperators from './pages/customer/CustomerOperators';
 import CustomerSites from './pages/customer/CustomerSites';
 import CustomerUsage from './pages/customer/CustomerUsage';
@@ -91,7 +90,6 @@ function App() {
               <Route path="sites" element={<CustomerSites />} />
               <Route path="rentals" element={<CustomerRentals />} />
               <Route path="rentals/:rentalId" element={<CustomerRentalDetails />} />
-              <Route path="machines/:equipmentId" element={<CustomerMachineDetails />} />
               <Route path="operators" element={<CustomerOperators />} />
               <Route path="usage" element={<CustomerUsage />} />
               <Route path="predictions" element={<CustomerPredictions />} />
