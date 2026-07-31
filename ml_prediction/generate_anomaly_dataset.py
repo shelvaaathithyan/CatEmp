@@ -30,59 +30,79 @@ EQUIPMENT_CATALOG = {
 # Model-specific anomaly thresholds — different models tolerate different limits
 MODEL_ANOMALY_THRESHOLDS = {
     # Excavators
-    "320 GC": {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12},
-    "336":    {"temp_max": 105, "volt_min": 11.8, "fault_threshold": 5, "fuel_min": 10},
-    "330":    {"temp_max": 102, "volt_min": 11.9, "fault_threshold": 4, "fuel_min": 11},
-    "323":    {"temp_max": 98,  "volt_min": 12.0, "fault_threshold": 3, "fuel_min": 13},
-    "352":    {"temp_max": 108, "volt_min": 11.7, "fault_threshold": 5, "fuel_min": 9},
+    # Excavators
+    "320 GC": {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12, "idle_max": 8.0},
+    "336":    {"temp_max": 105, "volt_min": 11.8, "fault_threshold": 5, "fuel_min": 10, "idle_max": 7.5},
+    "330":    {"temp_max": 102, "volt_min": 11.9, "fault_threshold": 4, "fuel_min": 11, "idle_max": 8.0},
+    "323":    {"temp_max": 98,  "volt_min": 12.0, "fault_threshold": 3, "fuel_min": 13, "idle_max": 8.5},
+    "352":    {"temp_max": 108, "volt_min": 11.7, "fault_threshold": 5, "fuel_min": 9,  "idle_max": 7.0},
     # Wheel Loaders
-    "950 GC": {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12},
-    "966":    {"temp_max": 103, "volt_min": 11.8, "fault_threshold": 5, "fuel_min": 10},
-    "980":    {"temp_max": 105, "volt_min": 11.7, "fault_threshold": 5, "fuel_min": 9},
-    "938":    {"temp_max": 98,  "volt_min": 12.1, "fault_threshold": 3, "fuel_min": 14},
+    "950 GC": {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12, "idle_max": 8.0},
+    "966":    {"temp_max": 103, "volt_min": 11.8, "fault_threshold": 5, "fuel_min": 10, "idle_max": 7.5},
+    "980":    {"temp_max": 105, "volt_min": 11.7, "fault_threshold": 5, "fuel_min": 9,  "idle_max": 7.0},
+    "938":    {"temp_max": 98,  "volt_min": 12.1, "fault_threshold": 3, "fuel_min": 14, "idle_max": 8.5},
     # Bulldozers
-    "D6":     {"temp_max": 102, "volt_min": 11.9, "fault_threshold": 4, "fuel_min": 11},
-    "D8":     {"temp_max": 108, "volt_min": 11.6, "fault_threshold": 5, "fuel_min": 8},
-    "D5":     {"temp_max": 98,  "volt_min": 12.0, "fault_threshold": 3, "fuel_min": 13},
-    "D10":    {"temp_max": 110, "volt_min": 11.5, "fault_threshold": 6, "fuel_min": 7},
+    "D6":     {"temp_max": 102, "volt_min": 11.9, "fault_threshold": 4, "fuel_min": 11, "idle_max": 8.0},
+    "D8":     {"temp_max": 108, "volt_min": 11.6, "fault_threshold": 5, "fuel_min": 8,  "idle_max": 7.0},
+    "D5":     {"temp_max": 98,  "volt_min": 12.0, "fault_threshold": 3, "fuel_min": 13, "idle_max": 8.5},
+    "D10":    {"temp_max": 110, "volt_min": 11.5, "fault_threshold": 6, "fuel_min": 7,  "idle_max": 6.5},
     # Motor Graders
-    "140":    {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12},
-    "120":    {"temp_max": 98,  "volt_min": 12.1, "fault_threshold": 3, "fuel_min": 14},
-    "160":    {"temp_max": 105, "volt_min": 11.8, "fault_threshold": 5, "fuel_min": 10},
+    "140":    {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12, "idle_max": 8.0},
+    "120":    {"temp_max": 98,  "volt_min": 12.1, "fault_threshold": 3, "fuel_min": 14, "idle_max": 8.5},
+    "160":    {"temp_max": 105, "volt_min": 11.8, "fault_threshold": 5, "fuel_min": 10, "idle_max": 7.5},
     # Articulated Trucks
-    "745":    {"temp_max": 105, "volt_min": 11.8, "fault_threshold": 5, "fuel_min": 10},
-    "730":    {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12},
-    "740":    {"temp_max": 103, "volt_min": 11.9, "fault_threshold": 4, "fuel_min": 11},
+    "745":    {"temp_max": 105, "volt_min": 11.8, "fault_threshold": 5, "fuel_min": 10, "idle_max": 7.5},
+    "730":    {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12, "idle_max": 8.0},
+    "740":    {"temp_max": 103, "volt_min": 11.9, "fault_threshold": 4, "fuel_min": 11, "idle_max": 7.5},
     # Backhoe Loaders
-    "420":    {"temp_max": 95,  "volt_min": 12.2, "fault_threshold": 3, "fuel_min": 15},
-    "430":    {"temp_max": 98,  "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 13},
-    "416":    {"temp_max": 93,  "volt_min": 12.3, "fault_threshold": 2, "fuel_min": 16},
+    "420":    {"temp_max": 95,  "volt_min": 12.2, "fault_threshold": 3, "fuel_min": 15, "idle_max": 9.0},
+    "430":    {"temp_max": 98,  "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 13, "idle_max": 8.5},
+    "416":    {"temp_max": 93,  "volt_min": 12.3, "fault_threshold": 2, "fuel_min": 16, "idle_max": 9.0},
     # Telehandlers
-    "TH514D": {"temp_max": 95, "volt_min": 12.2, "fault_threshold": 3, "fuel_min": 15},
-    "TH357D": {"temp_max": 93, "volt_min": 12.3, "fault_threshold": 2, "fuel_min": 16},
+    "TH514D": {"temp_max": 95, "volt_min": 12.2, "fault_threshold": 3, "fuel_min": 15, "idle_max": 9.0},
+    "TH357D": {"temp_max": 93, "volt_min": 12.3, "fault_threshold": 2, "fuel_min": 16, "idle_max": 9.0},
     # Skid Steer Loaders
-    "262D3":  {"temp_max": 95, "volt_min": 12.2, "fault_threshold": 3, "fuel_min": 15},
-    "272D3":  {"temp_max": 98, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 13},
+    "262D3":  {"temp_max": 95, "volt_min": 12.2, "fault_threshold": 3, "fuel_min": 15, "idle_max": 9.0},
+    "272D3":  {"temp_max": 98, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 13, "idle_max": 8.5},
     # Compactors
-    "CS56B":  {"temp_max": 95, "volt_min": 12.2, "fault_threshold": 3, "fuel_min": 15},
-    "CB2.7":  {"temp_max": 93, "volt_min": 12.3, "fault_threshold": 2, "fuel_min": 16},
+    "CS56B":  {"temp_max": 95, "volt_min": 12.2, "fault_threshold": 3, "fuel_min": 15, "idle_max": 9.0},
+    "CB2.7":  {"temp_max": 93, "volt_min": 12.3, "fault_threshold": 2, "fuel_min": 16, "idle_max": 9.0},
     # Crane (default)
-    "None":   {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12},
+    "None":   {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12, "idle_max": 8.0},
 }
 
-DEFAULT_THRESHOLD = {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12}
+DEFAULT_THRESHOLD = {"temp_max": 100, "volt_min": 12.0, "fault_threshold": 4, "fuel_min": 12, "idle_max": 8.0}
 
 
 def classify_anomaly(row):
-    """Determines anomaly status based on model-specific thresholds."""
+    """Determines anomaly status based on model-specific thresholds.
+    
+    Detects misuse of assets including:
+    - Overheating engines (temperature exceeds model max)
+    - Low battery voltage (electrical system degradation)
+    - Excessive fault codes (mechanical issues)
+    - Critically low fuel (neglected refueling)
+    - Long idle hours (asset sitting unused / misuse)
+    - Very low utilization rate (unassigned/abandoned equipment)
+    """
     model = str(row.get("model", ""))
     thresholds = MODEL_ANOMALY_THRESHOLDS.get(model, DEFAULT_THRESHOLD)
 
+    # Original sensor-based anomaly conditions
     if (row["engine_temperature"] > thresholds["temp_max"]
         or row["battery_voltage"] < thresholds["volt_min"]
         or row["fault_code_count"] >= thresholds["fault_threshold"]
         or row["fuel_level"] < thresholds["fuel_min"]):
         return "Anomaly"
+    
+    # Misuse detection: long idle hours (asset sitting idle most of the day)
+    if row["idle_hours_per_day"] > thresholds["idle_max"]:
+        return "Anomaly"
+    
+    # Misuse detection: very low utilization (unassigned/abandoned equipment)
+    if row.get("utilization_rate", 0.5) < 0.15:
+        return "Anomaly"
+    
     return "Normal"
 
 
@@ -149,12 +169,26 @@ def generate_expanded_anomaly_dataset(num_samples: int = 50000, seed: int = 42):
         model = np.random.choice(EQUIPMENT_CATALOG[eq_type])
         status = np.random.choice(statuses, p=[0.55, 0.45])
 
-        engine_hours = np.random.uniform(0.5, 14.0)
-        idle_hours = np.random.uniform(0.0, 10.0)
-        fuel = np.random.uniform(5.0, 100.0)
-        temp = np.random.uniform(60.0, 118.0)
-        volt = np.random.uniform(10.8, 14.8)
-        faults = np.random.randint(0, 10)
+        # Bimodal generation: 75% normal operating, 25% stressed/misused
+        is_stressed = np.random.random() < 0.25
+
+        if is_stressed:
+            # Stressed machines: higher idle, lower engine hours, sensor issues
+            engine_hours = np.random.uniform(0.5, 6.0)
+            idle_hours = np.random.uniform(5.0, 12.0)  # Long idle = misuse
+            fuel = np.random.uniform(3.0, 40.0)  # Lower fuel
+            temp = np.random.uniform(85.0, 120.0)  # Higher temps
+            volt = np.random.uniform(10.5, 12.5)  # Lower voltage
+            faults = np.random.randint(2, 10)  # More faults
+        else:
+            # Normal machines: healthy operating ranges
+            engine_hours = np.random.uniform(4.0, 12.0)
+            idle_hours = np.random.uniform(0.5, 6.0)  # Normal idle
+            fuel = np.random.uniform(30.0, 100.0)  # Healthy fuel
+            temp = np.random.uniform(60.0, 95.0)  # Normal temps
+            volt = np.random.uniform(12.0, 14.5)  # Good voltage
+            faults = np.random.randint(0, 4)  # Few faults
+
         total_hours = np.random.uniform(200, 14000)
         util_rate = engine_hours / max(engine_hours + idle_hours, 0.01)
 

@@ -64,9 +64,41 @@ def create_maintenance_prediction(prediction_in: MaintenancePredictionCreate, db
     return prediction_service.create_maintenance_prediction(db, prediction_in)
 
 @router.post("/anomaly", response_model=AnomalyPredictionResponse)
-def create_anomaly_prediction(prediction_in: AnomalyPredictionCreate, db: Session = Depends(get_db)):
-    """Stores a new anomaly detection prediction."""
-    return prediction_service.create_anomaly_prediction(db, prediction_in)
+async def create_anomaly_prediction(prediction_in: AnomalyPredictionCreate, db: Session = Depends(get_db)):
+    """Stores a new anomaly detection prediction and alerts on HIGH/CRITICAL severity."""
+    db_obj = prediction_service.create_anomaly_prediction(db, prediction_in)
+    
+    # Fire real-time alerts for HIGH and CRITICAL anomalies (asset misuse detection)
+    if prediction_in.severity in ("High", "Critical"):
+        machine = db.query(Machine).filter(Machine.equipment_id == prediction_in.equipment_id).first()
+        active_rental = db.query(Rental).filter(
+            Rental.equipment_id == prediction_in.equipment_id,
+            Rental.rental_status == "ACTIVE"
+        ).first()
+
+        message = f"Anomaly detected on {prediction_in.equipment_id}: {prediction_in.anomaly_status} (Score: {prediction_in.anomaly_score}, Severity: {prediction_in.severity}). Possible asset misuse — check for long idle hours or sensor failures."
+        
+        if active_rental and active_rental.fleet_manager:
+            await rabbitmq.publish_message({
+                "user_id": active_rental.fleet_manager.user_id,
+                "title": "Anomaly Detection Alert",
+                "message": message,
+                "equipment_id": prediction_in.equipment_id,
+                "priority": "HIGH",
+                "notification_type": "ALERT"
+            })
+            
+        if machine and machine.dealer:
+            await rabbitmq.publish_message({
+                "user_id": machine.dealer.user_id,
+                "title": "Anomaly Detection Alert",
+                "message": message,
+                "equipment_id": prediction_in.equipment_id,
+                "priority": "HIGH",
+                "notification_type": "ALERT"
+            })
+            
+    return db_obj
 
 @router.get("/demand", response_model=List[DemandPredictionResponse])
 def get_demand_predictions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
